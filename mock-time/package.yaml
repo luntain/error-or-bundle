@@ -1,0 +1,21 @@
+name:                mock-time
+version:             0.1.0.0
+#synopsis:
+#description:
+homepage:            https://github.com/luntain/mock-time
+license:             BSD3
+author:              Kamil Dworakowski
+maintainer:          example@example.com
+copyright:           2020 Kamil Dworakowski
+category:            Test
+extra-source-files:
+- README.md
+
+dependencies:
+  - base >= 4.7 && < 5
+  - time
+  - stm
+  - mtl
+
+library:
+    source-dirs:      src
