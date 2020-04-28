@@ -1,6 +1,8 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
 module Test.SimulatedTime
@@ -21,6 +23,7 @@ import Control.Monad (unless, when)
 import Control.Monad.Catch (MonadMask, MonadThrow)
 import Control.Monad.Cont (MonadCont)
 import Control.Monad.Except (MonadError)
+import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.RWS (MonadState, MonadWriter)
 import Control.Monad.Reader
 import Control.Monad.Time
@@ -53,7 +56,8 @@ newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv
       MonadPlus,
       MonadFix,
       MonadResource,
-      MonadZip
+      MonadZip,
+      PrimMonad
     )
 
 runSimulatedTimeT :: SimulatedTimeT m a -> TimeEnv -> m a

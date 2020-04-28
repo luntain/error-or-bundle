@@ -18,6 +18,7 @@ dependencies:
   - mtl
   - exceptions
   - resourcet
+  - primitive
 
 library:
     source-dirs:      src
