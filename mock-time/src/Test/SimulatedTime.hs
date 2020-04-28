@@ -68,6 +68,12 @@ instance MonadReader r m => MonadReader r (SimulatedTimeT m) where
   local f = SimulatedTimeT . mapReaderT (local f) . unSimulatedTimeT
   reader = lift . reader
 
+data TimeEnv
+  = TimeEnv
+      { offset :: TVar NominalDiffTime,
+        events :: TVar [(UTCTime, MVar ())]
+      }
+
 instance MonadIO m => MonadTime (SimulatedTimeT m) where
   getCurrentTime = SimulatedTimeT $ do
     env <- ask
@@ -76,12 +82,6 @@ instance MonadIO m => MonadTime (SimulatedTimeT m) where
   threadDelay delay = SimulatedTimeT $ do
     env <- ask
     liftIO $ threadDelay' env delay
-
-data TimeEnv
-  = TimeEnv
-      { offset :: TVar NominalDiffTime,
-        events :: TVar [(UTCTime, MVar ())]
-      }
 
 create :: UTCTime -> IO TimeEnv
 create epoch = do
