@@ -5,6 +5,7 @@
 
 module Test.SimulatedTime
   ( SimulatedTimeT (..),
+    runSimulatedTimeT,
     TimeEnv,
     create,
     advance,
@@ -54,6 +55,9 @@ newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv
       MonadResource,
       MonadZip
     )
+
+runSimulatedTimeT :: SimulatedTimeT m a -> TimeEnv -> m a
+runSimulatedTimeT = runReaderT . unSimulatedTimeT
 
 instance MonadReader r m => MonadReader r (SimulatedTimeT m) where
   ask = lift ask
