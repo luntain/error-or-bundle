@@ -1,3 +1,8 @@
+{-# LANGUAGE FlexibleInstances #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE MultiParamTypeClasses #-}
+{-# LANGUAGE UndecidableInstances #-}
+
 module Test.SimulatedTime
   ( SimulatedTimeT (..),
     TimeEnv,
@@ -7,12 +12,20 @@ module Test.SimulatedTime
   )
 where
 
+import Control.Applicative (Alternative)
 import Control.Concurrent hiding (threadDelay)
 import qualified Control.Concurrent
 import Control.Concurrent.STM
 import Control.Monad (unless, when)
+import Control.Monad.Catch (MonadMask, MonadThrow)
+import Control.Monad.Cont (MonadCont)
+import Control.Monad.Except (MonadError)
+import Control.Monad.RWS (MonadState, MonadWriter)
+import Control.Monad.Reader
 import Control.Monad.Time
 import Control.Monad.Trans (MonadIO (..), MonadTrans (..))
+import Control.Monad.Trans.Resource (MonadResource)
+import Control.Monad.Zip (MonadZip)
 import Data.Bifunctor (Bifunctor (first))
 import Data.Foldable (forM_)
 import Data.Function (on)
@@ -22,31 +35,39 @@ import Data.Maybe (listToMaybe)
 import Data.Time hiding (getCurrentTime)
 import qualified Data.Time
 
-newtype SimulatedTimeT m a = SimulatedTimeT {runSimulatedTimeT :: TimeEnv -> m a}
+newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv m a}
+  deriving
+    ( Functor,
+      Applicative,
+      Alternative,
+      Monad,
+      MonadIO,
+      MonadState s,
+      MonadWriter w,
+      MonadTrans,
+      MonadFail,
+      MonadThrow,
+      MonadError e,
+      MonadCont,
+      MonadPlus,
+      MonadFix,
+      MonadResource,
+      MonadZip
+    )
+
+instance MonadReader r m => MonadReader r (SimulatedTimeT m) where
+  ask = lift ask
+  local f = SimulatedTimeT . mapReaderT (local f) . unSimulatedTimeT
+  reader = lift . reader
 
 instance MonadIO m => MonadTime (SimulatedTimeT m) where
-  getCurrentTime = SimulatedTimeT $ \simTime ->
-    liftIO $ getCurrentTime' simTime
+  getCurrentTime = SimulatedTimeT $ do
+    env <- ask
+    liftIO $ getCurrentTime' env
 
-  threadDelay delay = SimulatedTimeT $ \simTime ->
-    liftIO $ threadDelay' simTime delay
-
-instance Functor f => Functor (SimulatedTimeT f) where
-  fmap f (SimulatedTimeT g) = SimulatedTimeT $ fmap f . g
-
-instance Applicative m => Applicative (SimulatedTimeT m) where
-  pure x = SimulatedTimeT (const (pure x))
-  SimulatedTimeT f <*> (SimulatedTimeT g) = SimulatedTimeT $ \simTime -> f simTime <*> g simTime
-
-instance Monad m => Monad (SimulatedTimeT m) where
-  return x = SimulatedTimeT (const (return x))
-  SimulatedTimeT g >>= f = SimulatedTimeT (\simTime -> g simTime >>= flip runSimulatedTimeT simTime . f)
-
-instance MonadIO m => MonadIO (SimulatedTimeT m) where
-  liftIO io = SimulatedTimeT (const (liftIO io))
-
-instance MonadTrans SimulatedTimeT where
-  lift m = SimulatedTimeT (const m)
+  threadDelay delay = SimulatedTimeT $ do
+    env <- ask
+    liftIO $ threadDelay' env delay
 
 data TimeEnv
   = TimeEnv

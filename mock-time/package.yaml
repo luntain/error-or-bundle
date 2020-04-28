@@ -16,6 +16,8 @@ dependencies:
   - time
   - stm
   - mtl
+  - exceptions
+  - resourcet
 
 library:
     source-dirs:      src
