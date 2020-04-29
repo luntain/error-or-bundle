@@ -16,12 +16,7 @@ class Monad m => MonadTime m where
   getCurrentTime :: m UTCTime
   threadDelay :: Int -> m ()
 
--- | Base instance for IO.
-instance MonadTime IO where
-  getCurrentTime = Data.Time.getCurrentTime
-  threadDelay = Control.Concurrent.threadDelay
-
-instance
+instance {-# OVERLAPPABLE #-}
   ( MonadTime m,
     MonadTrans t,
     Monad (t m)

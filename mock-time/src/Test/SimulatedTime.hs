@@ -1,3 +1,6 @@
+{-# LANGUAGE TypeApplications #-}
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RankNTypes #-}
 {-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
@@ -8,6 +11,7 @@
 module Test.SimulatedTime
   ( SimulatedTimeT (..),
     runSimulatedTimeT,
+    RealTimeT(..),
     TimeEnv,
     create,
     advance,
@@ -28,7 +32,7 @@ import Control.Monad.RWS (MonadState, MonadWriter)
 import Control.Monad.Reader
 import Control.Monad.Time
 import Control.Monad.Trans (MonadIO (..), MonadTrans (..))
-import Control.Monad.Trans.Resource (MonadResource)
+import Control.Monad.Trans.Resource (MonadUnliftIO, MonadResource)
 import Control.Monad.Zip (MonadZip)
 import Data.Bifunctor (Bifunctor (first))
 import Data.Foldable (forM_)
@@ -38,6 +42,7 @@ import Data.List (insertBy, partition)
 import Data.Maybe (listToMaybe)
 import Data.Time hiding (getCurrentTime)
 import qualified Data.Time
+import Control.Monad.IO.Unlift
 
 newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv m a}
   deriving
@@ -55,6 +60,7 @@ newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv
       MonadCont,
       MonadPlus,
       MonadFix,
+      -- MonadUnliftIO, -- gives an incomprehensible typing error
       MonadResource,
       MonadZip,
       PrimMonad
@@ -120,7 +126,7 @@ scheduleNextWakeUp t now = do
     Nothing -> return ()
     Just tm -> do
       let us = ceiling (diffUTCTime tm now * 1000000)
-      void (forkIO (threadDelay us >> triggerEvents t))
+      void (forkIO (Control.Concurrent.threadDelay us >> triggerEvents t))
 
 threadDelay' :: TimeEnv -> Int -> IO ()
 threadDelay' t us = do
@@ -133,3 +139,35 @@ threadDelay' t us = do
     return (maybe True (eventTime <) nextWakeUp)
   when shouldScheduleWakeUp (scheduleNextWakeUp t now)
   readMVar mvar
+
+instance MonadUnliftIO m => MonadUnliftIO (SimulatedTimeT m) where
+   withRunInIO (inner :: (forall a. SimulatedTimeT m a -> IO a) -> IO b) =
+     SimulatedTimeT (withRunInIO (\x -> inner (x . unSimulatedTimeT))) -- \x is needed to avoid some typing problems aofijaodij apoidjfo ijapoifj apodijf poajidf ojasodpfj oaisdjfop joia
+
+-- | Unadulturated time. Allows to conveniently call MonadTime actions from
+-- test where you don't want to import 'Control.Monad.Time.DefaultInstance'
+newtype RealTimeT m a = RealTimeT {runRealTimeT :: m a}
+  deriving
+    ( Functor,
+      Applicative,
+      Alternative,
+      Monad,
+      MonadIO,
+      MonadReader s,
+      MonadState s,
+      MonadWriter w,
+      --MonadTrans, "cannot eta-reduce the representation type enough", says ghc
+      MonadFail,
+      MonadThrow,
+      MonadError e,
+      MonadCont,
+      MonadPlus,
+      MonadFix,
+      MonadResource,
+      MonadZip,
+      PrimMonad
+    )
+
+instance MonadIO m => MonadTime (RealTimeT m) where
+  getCurrentTime = RealTimeT $ liftIO $ Data.Time.getCurrentTime
+  threadDelay delay = RealTimeT $ do liftIO $ Control.Concurrent.threadDelay delay

@@ -19,6 +19,7 @@ dependencies:
   - exceptions
   - resourcet
   - primitive
+  - unliftio-core
 
 library:
     source-dirs:      src
