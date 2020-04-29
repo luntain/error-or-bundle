@@ -16,6 +16,7 @@ module Test.SimulatedTime
     create,
     advance,
     triggerEvents,
+    getSimulatedTime,
   )
 where
 
@@ -83,7 +84,7 @@ data TimeEnv
 instance MonadIO m => MonadTime (SimulatedTimeT m) where
   getCurrentTime = SimulatedTimeT $ do
     env <- ask
-    liftIO $ getCurrentTime' env
+    liftIO $ getSimulatedTime env
 
   threadDelay delay = SimulatedTimeT $ do
     env <- ask
@@ -94,8 +95,8 @@ create epoch = do
   now <- Data.Time.getCurrentTime
   TimeEnv <$> newTVarIO (diffUTCTime epoch now) <*> newTVarIO []
 
-getCurrentTime' :: TimeEnv -> IO UTCTime
-getCurrentTime' t = do
+getSimulatedTime :: TimeEnv -> IO UTCTime
+getSimulatedTime t = do
   now <- Data.Time.getCurrentTime
   offset <- readTVarIO (offset t)
   return $ addUTCTime offset now
