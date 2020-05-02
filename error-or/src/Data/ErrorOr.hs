@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -7,7 +8,7 @@
 
 -- based on https://github.com/janestreet/base/blob/master/src/or_error.mli
 module Data.ErrorOr
-  ( ErrorOr (..),
+  ( ErrorOr,
     Taggable (..),
     Failable (..),
     pattern Error,
@@ -27,8 +28,9 @@ import Data.Semigroup
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
+-- | Use 'sequenceA' and 'sequenceA_' to compose errors.
 newtype ErrorOr a = ErrorOr {toEither :: Either ErrorAcc a}
-  deriving (Show, Read, Eq, Ord, Functor)
+  deriving (Show, Read, Eq, Ord, Functor, Foldable, Traversable)
 
 pattern OK :: a -> ErrorOr a
 pattern OK x <- ErrorOr (Right x)
@@ -46,6 +48,10 @@ instance Exc.Exception ErrorAcc where
   -- not being used by HUnit/Tasty at least
   displayException = T.unpack . pretty 0
 
+instance Exc.Exception (ErrorOr ()) where
+  displayException (ErrorOr (Left err)) = T.unpack . pretty 0 $ err
+  displayException (ErrorOr (Right ())) = "ErrorOr (Right ())"
+
 pretty :: Int -> ErrorAcc -> T.Text
 pretty indent (Message txt) = T.replicate indent " " <> txt
 pretty indent (List errs) = T.intercalate "\n" . map (pretty indent) . toList $ errs
@@ -58,7 +64,7 @@ instance Semigroup ErrorAcc where
   notList1 <> notList2 = List (Seq.fromList [notList1, notList2])
 
 instance Applicative ErrorOr where
-  pure x = ok x
+  pure x = ErrorOr (Right x)
   ErrorOr (Right f) <*> ErrorOr (Right a) = ok (f a)
   ErrorOr (Left e1) <*> ErrorOr (Left e2) = ErrorOr . Left $ e1 <> e2
   ErrorOr (Left e1) <*> ErrorOr (Right _) = ErrorOr . Left $ e1
@@ -76,7 +82,7 @@ mapError f (ErrorOr (Left e)) = ErrorOr (Left (f e))
 mapError _ ok = ok
 
 ok :: a -> ErrorOr a
-ok x = ErrorOr (Right x)
+ok = pure
 
 fromOK :: ErrorOr a -> a
 fromOK (ErrorOr (Right a)) = a
