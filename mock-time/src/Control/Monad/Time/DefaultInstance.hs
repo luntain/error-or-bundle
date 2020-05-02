@@ -11,5 +11,5 @@ import Data.Time (getCurrentTime)
 import Control.Concurrent (threadDelay)
 
 instance (Monad m, MonadIO m) => MonadTime m where
-  getCurrentTime = liftIO $ Data.Time.getCurrentTime
+  getCurrentTime = liftIO Data.Time.getCurrentTime
   threadDelay delay = liftIO $ Control.Concurrent.threadDelay delay

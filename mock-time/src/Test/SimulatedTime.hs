@@ -143,7 +143,7 @@ threadDelay' t us = do
 
 instance MonadUnliftIO m => MonadUnliftIO (SimulatedTimeT m) where
    withRunInIO (inner :: (forall a. SimulatedTimeT m a -> IO a) -> IO b) =
-     SimulatedTimeT (withRunInIO (\x -> inner (x . unSimulatedTimeT))) -- \x is needed to avoid some typing problems aofijaodij apoidjfo ijapoifj apodijf poajidf ojasodpfj oaisdjfop joia
+     SimulatedTimeT (withRunInIO (\x -> inner (x . unSimulatedTimeT))) -- \x is needed to avoid some typing problems
 
 -- | Unadulturated time. Allows to conveniently call MonadTime actions from
 -- test where you don't want to import 'Control.Monad.Time.DefaultInstance'
