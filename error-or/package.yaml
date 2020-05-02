@@ -1,0 +1,20 @@
+name:                error-or
+version:             0.1.0.0
+#synopsis:
+#description:
+homepage:            https://github.com/luntain/error-or#readme
+license:             BSD3
+author:              Kamil Dworakowski
+maintainer:          kamil@dworakowski.name
+copyright:           2020 Kamil Dworakowski
+category:            data,library
+extra-source-files:
+- README.md
+
+dependencies:
+  - base >= 4.7 && < 5
+  - text
+  - containers
+
+library:
+  source-dirs:      src
