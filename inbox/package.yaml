@@ -1,0 +1,20 @@
+name:                inbox
+version:             0.1.0.0
+#synopsis:
+#description:
+homepage:            https://github.com/luntain/inbox#readme
+license:             BSD3
+author:              Kamil Dworakowski
+maintainer:          kamil@dworakowski.name
+copyright:           2020 Kamil Dworakowski
+category:            Web
+extra-source-files:
+- README.md
+
+dependencies:
+  - base >= 4.7 && < 5
+
+executables:
+  inbox:
+    source-dirs:      src
+    main:             Main.hs
