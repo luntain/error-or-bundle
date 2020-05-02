@@ -18,6 +18,7 @@ module Data.ErrorOr
     fromOK,
     ok,
     err,
+    toE,
   )
 where
 
@@ -115,6 +116,11 @@ instance Taggable (IO a) where
 
 class ErrorConv t s where
   toE :: t a -> s a
+
+instance ErrorConv ErrorOr IO where
+  toE (OK val) = pure val
+  toE (Error e) = failWith e
+
 
 class Failable m where failWith :: ErrorAcc -> m a
 
