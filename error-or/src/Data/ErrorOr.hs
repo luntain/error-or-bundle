@@ -71,8 +71,8 @@ instance Applicative ErrorOr where
   ErrorOr (Right _) <*> ErrorOr (Left e2) = ErrorOr . Left $ e2
 
 instance Semigroup a => Semigroup (ErrorOr a) where
-  ErrorOr (Left e1) <> ErrorOr (Left e2) = ErrorOr (Left $ e1 <> e2)
-  ErrorOr (Right v1) <> ErrorOr (Right v2) = ErrorOr (Right $ v1 <> v2)
+  Error e1 <> Error e2 = ErrorOr (Left $ e1 <> e2)
+  OK v1 <> OK v2 = ErrorOr (Right $ v1 <> v2)
   l@(ErrorOr (Left _)) <> _ = l
   _ <> r = r
 
@@ -95,8 +95,8 @@ ok :: a -> ErrorOr a
 ok = pure
 
 fromOK :: ErrorOr a -> a
-fromOK (ErrorOr (Right a)) = a
-fromOK (ErrorOr (Left err)) = error (T.unpack $ pretty 0 err)
+fromOK (OK a) = a
+fromOK (Error err) = error (T.unpack $ pretty 0 err)
 
 class Taggable c where
   tag :: T.Text -> c -> c
