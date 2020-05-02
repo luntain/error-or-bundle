@@ -70,6 +70,16 @@ instance Applicative ErrorOr where
   ErrorOr (Left e1) <*> ErrorOr (Right _) = ErrorOr . Left $ e1
   ErrorOr (Right _) <*> ErrorOr (Left e2) = ErrorOr . Left $ e2
 
+instance Semigroup a => Semigroup (ErrorOr a) where
+  ErrorOr (Left e1) <> ErrorOr (Left e2) = ErrorOr (Left $ e1 <> e2)
+  ErrorOr (Right v1) <> ErrorOr (Right v2) = ErrorOr (Right $ v1 <> v2)
+  l@(ErrorOr (Left _)) <> _ = l
+  _ <> r = r
+
+instance Monoid a => Monoid (ErrorOr a) where
+  mappend = (<>)
+  mempty = ok mempty
+
 isOK :: ErrorOr a -> Bool
 isOK (OK _) = True
 isOK _ = False
