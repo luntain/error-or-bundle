@@ -7,14 +7,14 @@ license:             BSD3
 author:              Kamil Dworakowski
 maintainer:          kamil@dworakowski.name
 copyright:           2020 Kamil Dworakowski
-category:            Web
+category:            Testing
 extra-source-files:
 - README.md
 
 dependencies:
   - base >= 4.7 && < 5
+  - text
+  - error-or
 
-executables:
-  inbox:
-    source-dirs:      src
-    main:             Main.hs
+library:
+  source-dirs:      src
