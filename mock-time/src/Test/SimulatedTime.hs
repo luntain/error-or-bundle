@@ -172,3 +172,7 @@ newtype RealTimeT m a = RealTimeT {runRealTimeT :: m a}
 instance MonadIO m => MonadTime (RealTimeT m) where
   getCurrentTime = RealTimeT $ liftIO $ Data.Time.getCurrentTime
   threadDelay delay = RealTimeT $ do liftIO $ Control.Concurrent.threadDelay delay
+
+instance MonadUnliftIO m => MonadUnliftIO (RealTimeT m) where
+   withRunInIO (inner :: (forall a. RealTimeT m a -> IO a) -> IO b) =
+     RealTimeT (withRunInIO (\x -> inner (x . runRealTimeT))) -- \x is needed to avoid some typing problems
