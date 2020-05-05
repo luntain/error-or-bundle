@@ -17,6 +17,7 @@ module Test.SimulatedTime
     advance,
     triggerEvents,
     getSimulatedTime,
+    getTimeEnv,
   )
 where
 
@@ -100,6 +101,9 @@ getSimulatedTime t = do
   now <- Data.Time.getCurrentTime
   offset <- readTVarIO (offset t)
   return $ addUTCTime offset now
+
+getTimeEnv :: Monad m => SimulatedTimeT m TimeEnv
+getTimeEnv = SimulatedTimeT ask
 
 triggerEvents t = advance t 0
 
