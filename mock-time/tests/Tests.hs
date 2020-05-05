@@ -46,7 +46,7 @@ main =
             forM_ shuffled (\delay -> void (forkIO (SimTime.threadDelay' t delay >> Inbox.put inbox (show delay))))
             Inbox.wait inbox (Inbox.equalTo "50000")
             elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
-            toE ((elapsed <! 0.075) <> (elapsed >! 0.049))
+            toE ((elapsed <! 0.085) <> (elapsed >! 0.049))
             SimTime.advance t 0.5
             Inbox.wait inbox (Inbox.equalTo "500000")
             elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
