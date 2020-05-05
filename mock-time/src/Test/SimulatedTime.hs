@@ -1,43 +1,22 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RankNTypes #-}
-{-# LANGUAGE DataKinds #-}
-{-# LANGUAGE FlexibleInstances #-}
-{-# LANGUAGE GeneralizedNewtypeDeriving #-}
-{-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UnboxedTuples #-}
-{-# LANGUAGE UndecidableInstances #-}
 
 module Test.SimulatedTime
-  ( SimulatedTimeT (..),
-    runSimulatedTimeT,
-    RealTimeT(..),
-    TimeEnv,
+  ( TimeEnv,
     create,
     advance,
     triggerEvents,
     getSimulatedTime,
-    getTimeEnv,
     threadDelay',
   )
 where
 
-import Control.Applicative (Alternative)
 import Control.Concurrent hiding (threadDelay)
 import qualified Control.Concurrent
 import Control.Concurrent.STM
 import Control.Monad (unless, when)
-import Control.Monad.Catch (MonadCatch, MonadMask(..), MonadThrow)
-import Control.Monad.Cont (MonadCont)
-import Control.Monad.Except (MonadError)
-import Control.Monad.Primitive (PrimMonad)
-import Control.Monad.RWS (MonadState, MonadWriter)
-import Control.Monad.Reader
 import Control.Monad.Time
-import Control.Monad.Trans (MonadIO (..), MonadTrans (..))
-import Control.Monad.Trans.Resource (MonadUnliftIO, MonadResource)
-import Control.Monad.Zip (MonadZip)
-import Data.Bifunctor (Bifunctor (first))
 import Data.Foldable (forM_)
 import Data.Function (on)
 import Data.Functor (void)
@@ -45,53 +24,13 @@ import Data.List (insertBy, partition)
 import Data.Maybe (listToMaybe)
 import Data.Time hiding (getCurrentTime)
 import qualified Data.Time
-import Control.Monad.IO.Unlift
-
-newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv m a}
-  deriving
-    ( Functor,
-      Applicative,
-      Alternative,
-      Monad,
-      MonadIO,
-      MonadState s,
-      MonadWriter w,
-      MonadTrans,
-      MonadFail,
-      MonadThrow,
-      MonadCatch,
-      MonadError e,
-      MonadCont,
-      MonadPlus,
-      MonadFix,
-      -- MonadUnliftIO, -- gives an incomprehensible typing error
-      MonadResource,
-      MonadZip,
-      PrimMonad
-    )
-
-runSimulatedTimeT :: SimulatedTimeT m a -> TimeEnv -> m a
-runSimulatedTimeT = runReaderT . unSimulatedTimeT
-
-instance MonadReader r m => MonadReader r (SimulatedTimeT m) where
-  ask = lift ask
-  local f = SimulatedTimeT . mapReaderT (local f) . unSimulatedTimeT
-  reader = lift . reader
+import Data.Bifunctor (Bifunctor(first))
 
 data TimeEnv
   = TimeEnv
       { offset :: TVar NominalDiffTime,
         events :: TVar [(UTCTime, MVar ())]
       }
-
-instance MonadIO m => MonadTime (SimulatedTimeT m) where
-  getCurrentTime = SimulatedTimeT $ do
-    env <- ask
-    liftIO $ getSimulatedTime env
-
-  threadDelay delay = SimulatedTimeT $ do
-    env <- ask
-    liftIO $ threadDelay' env delay
 
 create :: UTCTime -> IO TimeEnv
 create epoch = do
@@ -104,9 +43,7 @@ getSimulatedTime t = do
   offset <- readTVarIO (offset t)
   return $ addUTCTime offset now
 
-getTimeEnv :: Monad m => SimulatedTimeT m TimeEnv
-getTimeEnv = SimulatedTimeT ask
-
+triggerEvents :: TimeEnv -> IO ()
 triggerEvents t = advance t 0
 
 advance :: TimeEnv -> NominalDiffTime -> IO ()
@@ -146,52 +83,3 @@ threadDelay' t us = do
     return (maybe True (eventTime <) nextWakeUp)
   when shouldScheduleWakeUp (scheduleNextWakeUp t now)
   readMVar mvar
-
-instance MonadUnliftIO m => MonadUnliftIO (SimulatedTimeT m) where
-   withRunInIO (inner :: (forall a. SimulatedTimeT m a -> IO a) -> IO b) =
-     SimulatedTimeT (withRunInIO (\x -> inner (x . unSimulatedTimeT))) -- \x is needed to avoid some typing problems
-
-instance MonadMask m => MonadMask (SimulatedTimeT m) where
-    mask inner = SimulatedTimeT $ mask (\unmask -> unSimulatedTimeT $ inner (SimulatedTimeT . unmask . unSimulatedTimeT))
-    uninterruptibleMask inner = SimulatedTimeT (uninterruptibleMask (\unmask -> unSimulatedTimeT $ inner (SimulatedTimeT . unmask . unSimulatedTimeT)))
-    generalBracket acquire release inner =
-      SimulatedTimeT $ generalBracket (unSimulatedTimeT acquire) (fmap (fmap unSimulatedTimeT) release) (fmap (unSimulatedTimeT) inner)
-
--- | Unadulturated time. Allows to conveniently call MonadTime actions from
--- test where you don't want to import 'Control.Monad.Time.DefaultInstance'
-newtype RealTimeT m a = RealTimeT {runRealTimeT :: m a}
-  deriving
-    ( Functor,
-      Applicative,
-      Alternative,
-      Monad,
-      MonadIO,
-      MonadReader s,
-      MonadState s,
-      MonadWriter w,
-      --MonadTrans, "cannot eta-reduce the representation type enough", says ghc
-      MonadFail,
-      MonadThrow,
-      MonadCatch,
-      MonadError e,
-      MonadCont,
-      MonadPlus,
-      MonadFix,
-      MonadResource,
-      MonadZip,
-      PrimMonad
-    )
-
-instance MonadIO m => MonadTime (RealTimeT m) where
-  getCurrentTime = RealTimeT $ liftIO $ Data.Time.getCurrentTime
-  threadDelay delay = RealTimeT $ do liftIO $ Control.Concurrent.threadDelay delay
-
-instance MonadUnliftIO m => MonadUnliftIO (RealTimeT m) where
-   withRunInIO (inner :: (forall a. RealTimeT m a -> IO a) -> IO b) =
-     RealTimeT (withRunInIO (\x -> inner (x . runRealTimeT))) -- \x is needed to avoid some typing problems
-
-instance MonadMask m => MonadMask (RealTimeT m) where
-    mask inner = RealTimeT $ mask (\unmask -> runRealTimeT $ inner (RealTimeT . unmask . runRealTimeT))
-    uninterruptibleMask inner = RealTimeT (uninterruptibleMask (\unmask -> runRealTimeT $ inner (RealTimeT . unmask . runRealTimeT)))
-    generalBracket acquire release inner =
-      RealTimeT $ generalBracket (runRealTimeT acquire) (fmap (fmap runRealTimeT) release) (fmap (runRealTimeT) inner)
