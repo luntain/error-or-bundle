@@ -39,20 +39,20 @@ main =
                   1000000
                 ]
           shuffled <- shuffle sorted
-          return . monadicIO $ do
-            t <- run $ SimTime.create (UTCTime (fromGregorian 2015 7 18) 0)
-            inbox <- run Inbox.new
-            t0 <- run Data.Time.getCurrentTime
-            run $ forM_ shuffled (\delay -> void (forkIO (SimTime.threadDelay' t delay >> Inbox.put inbox (show delay))))
-            run (Inbox.wait inbox (Inbox.equalTo "50000"))
-            elapsed <- run (flip diffUTCTime t0 <$> Data.Time.getCurrentTime)
-            run $ toE ((elapsed <! 0.075) <> (elapsed >! 0.049))
-            run (SimTime.advance t 0.5)
-            run (Inbox.wait inbox (Inbox.equalTo "500000"))
-            elapsed <- run (flip diffUTCTime t0 <$> Data.Time.getCurrentTime)
-            run $ toE (elapsed <! 0.1)
-            run (SimTime.advance t 0.3)
-            run (Inbox.wait inbox (Inbox.equalTo "1000000"))
-            elapsed <- run (flip diffUTCTime t0 <$> Data.Time.getCurrentTime)
-            run $ toE ((elapsed <! 0.4) <> (elapsed >! 0.2))
+          return . monadicIO . run $ do
+            t <-  SimTime.create (UTCTime (fromGregorian 2015 7 18) 0)
+            inbox <- Inbox.new
+            t0 <- Data.Time.getCurrentTime
+            forM_ shuffled (\delay -> void (forkIO (SimTime.threadDelay' t delay >> Inbox.put inbox (show delay))))
+            Inbox.wait inbox (Inbox.equalTo "50000")
+            elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
+            toE ((elapsed <! 0.075) <> (elapsed >! 0.049))
+            SimTime.advance t 0.5
+            Inbox.wait inbox (Inbox.equalTo "500000")
+            elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
+            toE (elapsed <! 0.1)
+            SimTime.advance t 0.3
+            Inbox.wait inbox (Inbox.equalTo "1000000")
+            elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
+            toE ((elapsed <! 0.4) <> (elapsed >! 0.2))
       ]
