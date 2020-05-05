@@ -18,6 +18,7 @@ module Test.SimulatedTime
     triggerEvents,
     getSimulatedTime,
     getTimeEnv,
+    threadDelay',
   )
 where
 

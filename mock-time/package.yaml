@@ -20,6 +20,20 @@ dependencies:
   - resourcet
   - primitive
   - unliftio-core
+  - error-or
+  - inbox
+
+  - tasty
+  - tasty-quickcheck
+  - tasty-hunit
+  - QuickCheck
 
 library:
     source-dirs:      src
+
+tests:
+  my-test-suite:
+    source-dirs: tests
+    main: Tests.hs
+    dependencies:
+    - mock-time

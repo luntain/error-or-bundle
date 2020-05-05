@@ -34,12 +34,11 @@ packages:
 # These entries can reference officially published versions as well as
 # forks / in-progress versions pinned to a git hash. For example:
 #
-# extra-deps:
-# - acme-missiles-0.3
-# - git: https://github.com/commercialhaskell/stack.git
-#   commit: e7b331f14bcffb8367cd58fbfc8b40ec7642100a
-#
-# extra-deps: []
+extra-deps:
+#- git: https://github.com/luntain/error-or.git
+#  commit: 6ffcddb9e02f916b402b31f16aab2c171b9cd2ef
+- ../error-or
+- ../inbox
 
 # Override default flag values for local packages and extra-deps
 # flags: {}
