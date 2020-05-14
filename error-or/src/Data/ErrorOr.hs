@@ -81,6 +81,15 @@ instance Monoid a => Monoid (ErrorOr a) where
   mappend = (<>)
   mempty = ok mempty
 
+-- | OrError's instances for Monad and Applicative don't align, but
+-- the Monad and MonadFail are too useful to pass on.
+instance Monad ErrorOr where
+  return = pure
+  ErrorOr either >>= f = ErrorOr (either >>= fmap toEither f)
+
+instance MonadFail ErrorOr where
+  fail = err . T.pack
+
 isOK :: ErrorOr a -> Bool
 isOK (OK _) = True
 isOK _ = False
