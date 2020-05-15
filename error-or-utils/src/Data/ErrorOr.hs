@@ -45,13 +45,14 @@ data ErrorAcc
   | Message T.Text
   deriving (Show, Read, Eq, Ord)
 
-instance Exc.Exception ErrorAcc where
-  -- not being used by HUnit/Tasty at least
-  displayException = T.unpack . pretty 0
+-- | To provide a human readable exc. (Exception class' displayException does not seem to be used by GHC)
+-- https://stackoverflow.com/questions/55490766/why-doesn-t-ghc-use-my-displayexception-method
+newtype PrettyErrAcc = PrettyErrAcc {unPrettyErrAcc :: ErrorAcc}
 
-instance Exc.Exception (ErrorOr ()) where
-  displayException (ErrorOr (Left err)) = T.unpack . pretty 0 $ err
-  displayException (ErrorOr (Right ())) = "ErrorOr (Right ())"
+instance Show PrettyErrAcc where
+  show = T.unpack  . pretty 0 . unPrettyErrAcc
+
+instance Exc.Exception PrettyErrAcc where
 
 pretty :: Int -> ErrorAcc -> T.Text
 pretty indent (Message txt) = T.replicate indent " " <> txt
@@ -121,7 +122,7 @@ instance Taggable (ErrorOr a) where
     | otherwise = mapError (Tag str) res
 
 instance Taggable (IO a) where
-  tag label = Exc.handle (Exc.throwIO . Tag label)
+  tag label = Exc.handle (Exc.throwIO . PrettyErrAcc . Tag label . unPrettyErrAcc)
 
 class ErrorConv t s where
   toE :: t a -> s a
@@ -139,7 +140,7 @@ instance {-# OVERLAPPING #-} Failable ErrorOr where failWith err = ErrorOr (Left
 
 instance {-# OVERLAPPING #-} Failable (Either T.Text) where failWith err = Left (pretty 0 err)
 
-instance {-# OVERLAPPABLE #-} MonadIO m => Failable m where failWith err = liftIO (Exc.throwIO err)
+instance {-# OVERLAPPABLE #-} MonadIO m => Failable m where failWith err = liftIO (Exc.throwIO (PrettyErrAcc err))
 
 err :: Failable m => T.Text -> m a
 err = failWith . Message
