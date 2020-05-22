@@ -131,6 +131,9 @@ instance ErrorConv ErrorOr IO where
   toE (OK val) = pure val
   toE (Error e) = failWith e
 
+instance ErrorConv Maybe ErrorOr where
+  toE Nothing = err "Nothing"
+  toE (Just a) = pure a
 
 class Failable m where failWith :: ErrorAcc -> m a
 
