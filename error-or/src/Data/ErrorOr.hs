@@ -102,9 +102,11 @@ mapError :: (ErrorAcc -> ErrorAcc) -> ErrorOr a -> ErrorOr a
 mapError f (ErrorOr (Left e)) = ErrorOr (Left (f e))
 mapError _ ok = ok
 
+-- | ok = pure
 ok :: a -> ErrorOr a
 ok = pure
 
+-- | Like fromRight
 fromOK :: ErrorOr a -> a
 fromOK (OK a) = a
 fromOK (Error err) = error (T.unpack $ pretty 0 err)
