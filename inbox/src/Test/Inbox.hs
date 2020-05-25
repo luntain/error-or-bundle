@@ -53,7 +53,7 @@ zero (T r) (Filter name p) = do
   elems <- liftIO (filter (isJust.p) <$> readIORef r)
   unless (null elems) $ do
     liftIO
-      . throwIO
+      . toE
       . tag ("There are msgs matching " <> name)
       . sequenceA_
       . map ((err :: T.Text -> ErrorOr ()) . T.pack . show) $ elems
