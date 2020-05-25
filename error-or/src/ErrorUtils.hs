@@ -8,6 +8,7 @@ import qualified Data.Map as M
 import qualified Data.List as List
 import qualified Data.Text as T
 import Data.ErrorOr
+import qualified Data.Char
 
 
 class OverloadedLookup t k v | t -> k, t -> v where overloadedLookup :: k -> t -> Maybe v
@@ -26,3 +27,17 @@ shorten maxLen msg =
   case T.splitAt maxLen msg of
     (x, t) | t == T.empty -> x
     (x, _rest) -> T.take (maxLen - 5) x <> "(...)"
+
+tryRead :: (Read a, Show a, MonadFail m) => String -> m a
+tryRead str =
+  case reads str of
+    [] -> fail ("Can't read: " ++ shorten 256 str)
+    [(a, rest)]
+      | all Data.Char.isSpace rest -> return a
+    parses -> fail ("Ambiguous parse: '" ++ str ++ "' " ++ shorten 256 (show parses))
+  where
+    shorten :: Int -> [Char] -> [Char]
+    shorten maxLen msg =
+      case splitAt maxLen msg of
+        (x, t) | t == [] -> x
+        (x, _rest) -> take (maxLen - 5) x ++ "(...)"
