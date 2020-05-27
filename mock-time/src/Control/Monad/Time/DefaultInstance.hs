@@ -10,7 +10,7 @@ import Control.Monad.Trans (liftIO, MonadIO)
 import Data.Time (getCurrentTime)
 import Control.Concurrent (threadDelay)
 
-instance {-# OVERLAPPABLE #-}
-  (Monad m, MonadIO m) => MonadTime m where
+instance {-# OVERLAPPING #-}
+  MonadTime IO where
   getCurrentTime = liftIO Data.Time.getCurrentTime
   threadDelay delay = liftIO $ Control.Concurrent.threadDelay delay
