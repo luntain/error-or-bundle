@@ -1,0 +1,72 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.31.2.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: a57425ecf10ab3ef2dc49c0deb2f29014a0506b4f9136353accae9c5123fb10d
+
+name:           mock-time
+version:        0.1.0.0
+category:       Test
+homepage:       https://github.com/luntain/mock-time
+author:         Kamil Dworakowski
+maintainer:     example@example.com
+copyright:      2020 Kamil Dworakowski
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+library
+  exposed-modules:
+      Control.Monad.Time
+      Control.Monad.Time.DefaultInstance
+      Control.Monad.Trans.SimulatedTime
+      Test.SimulatedTime
+  other-modules:
+      Paths_mock_time
+  hs-source-dirs:
+      src
+  build-depends:
+      QuickCheck
+    , base >=4.7 && <5
+    , error-or
+    , exceptions
+    , inbox
+    , mtl
+    , primitive
+    , resourcet
+    , stm
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , time
+    , unliftio-core
+  default-language: Haskell2010
+
+test-suite my-test-suite
+  type: exitcode-stdio-1.0
+  main-is: Tests.hs
+  other-modules:
+      Paths_mock_time
+  hs-source-dirs:
+      tests
+  build-depends:
+      QuickCheck
+    , base >=4.7 && <5
+    , error-or
+    , exceptions
+    , inbox
+    , mock-time
+    , mtl
+    , primitive
+    , resourcet
+    , stm
+    , tasty
+    , tasty-hunit
+    , tasty-quickcheck
+    , time
+    , unliftio-core
+  default-language: Haskell2010
