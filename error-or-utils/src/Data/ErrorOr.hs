@@ -6,18 +6,16 @@
 {-# LANGUAGE PatternSynonyms #-}
 {-# LANGUAGE UndecidableInstances #-}
 
--- based on https://github.com/janestreet/base/blob/master/src/or_error.mli
+-- inspired by https://github.com/janestreet/base/blob/master/src/or_error.mli
 module Data.ErrorOr
   ( ErrorOr,
-    Taggable (..),
-    Failable (..),
+    err,
+    tag,
     pattern Error,
     pattern OK,
     isOK,
     isError,
     fromOK,
-    ok,
-    err,
     toE,
   )
 where
@@ -45,7 +43,17 @@ data ErrorAcc
   | Message T.Text
   deriving (Show, Read, Eq, Ord)
 
--- | To provide a human readable exc. (Exception class' displayException does not seem to be used by GHC)
+-- | Could be defined as 'err = fail . Text.pack'
+err :: T.Text -> ErrorOr a
+err = ErrorOr . Left . Message
+
+-- | Annotate the error to add context information.
+tag :: T.Text -> ErrorOr a -> ErrorOr a
+tag str res
+  | isOK res = res
+  | otherwise = mapError (Tag str) res
+
+-- | To provide a human readable exceptions. (Exception class' displayException does not seem to be used by GHC)
 -- https://stackoverflow.com/questions/55490766/why-doesn-t-ghc-use-my-displayexception-method
 newtype PrettyErrAcc = PrettyErrAcc {unPrettyErrAcc :: ErrorAcc}
 
@@ -67,7 +75,7 @@ instance Semigroup ErrorAcc where
 
 instance Applicative ErrorOr where
   pure x = ErrorOr (Right x)
-  ErrorOr (Right f) <*> ErrorOr (Right a) = ok (f a)
+  ErrorOr (Right f) <*> ErrorOr (Right a) = pure (f a)
   ErrorOr (Left e1) <*> ErrorOr (Left e2) = ErrorOr . Left $ e1 <> e2
   ErrorOr (Left e1) <*> ErrorOr (Right _) = ErrorOr . Left $ e1
   ErrorOr (Right _) <*> ErrorOr (Left e2) = ErrorOr . Left $ e2
@@ -80,16 +88,16 @@ instance Semigroup a => Semigroup (ErrorOr a) where
 
 instance Monoid a => Monoid (ErrorOr a) where
   mappend = (<>)
-  mempty = ok mempty
+  mempty = pure mempty
 
 -- | OrError's instances for Monad and Applicative don't align, but
--- the Monad and MonadFail are too useful to pass on.
+-- the Monad and MonadFail are too useful (as in convenient) to pass on.
 instance Monad ErrorOr where
   return = pure
   ErrorOr either >>= f = ErrorOr (either >>= fmap toEither f)
 
 instance MonadFail ErrorOr where
-  fail = err . T.pack
+  fail = ErrorOr . Left . Message . T.pack
 
 isOK :: ErrorOr a -> Bool
 isOK (OK _) = True
@@ -102,50 +110,22 @@ mapError :: (ErrorAcc -> ErrorAcc) -> ErrorOr a -> ErrorOr a
 mapError f (ErrorOr (Left e)) = ErrorOr (Left (f e))
 mapError _ ok = ok
 
--- | ok = pure
-ok :: a -> ErrorOr a
-ok = pure
-
--- | Like fromRight
+-- | Like 'fromRight'
 fromOK :: ErrorOr a -> a
 fromOK (OK a) = a
 fromOK (Error err) = error (T.unpack $ pretty 0 err)
 
-class Taggable c where
-  tag :: T.Text -> c -> c
-
--- I don't think there is a need for this instance actually
-instance Taggable ErrorAcc where
-  tag = Tag
-
-instance Taggable (ErrorOr a) where
-  tag str res
-    | isOK res = res
-    | otherwise = mapError (Tag str) res
-
-instance Taggable (IO a) where
-  tag label = Exc.handle (Exc.throwIO . PrettyErrAcc . Tag label . unPrettyErrAcc)
-
+-- | Convert between functors that hold error info.
 class ErrorConv t s where
   toE :: t a -> s a
 
+-- | Convert from ErrorOr to IO. It throws an exception if this is an error.
 instance ErrorConv ErrorOr IO where
   toE (OK val) = pure val
-  toE (Error e) = failWith e
+  toE (Error e) = Exc.throwIO (PrettyErrAcc e)
 
+-- | Convert from 'Maybe a' to 'ErrorOr a'. It converts 'Nothing' simply to an error
+-- with msg "Nothing".
 instance ErrorConv Maybe ErrorOr where
-  toE Nothing = err "Nothing"
+  toE Nothing = fail "Nothing"
   toE (Just a) = pure a
-
-class Failable m where failWith :: ErrorAcc -> m a
-
-instance {-# OVERLAPPING #-} Failable Maybe where failWith _ = Nothing
-
-instance {-# OVERLAPPING #-} Failable ErrorOr where failWith err = ErrorOr (Left err)
-
-instance {-# OVERLAPPING #-} Failable (Either T.Text) where failWith err = Left (pretty 0 err)
-
-instance {-# OVERLAPPABLE #-} MonadIO m => Failable m where failWith err = liftIO (Exc.throwIO (PrettyErrAcc err))
-
-err :: Failable m => T.Text -> m a
-err = failWith . Message
