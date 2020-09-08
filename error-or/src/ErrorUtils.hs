@@ -15,12 +15,13 @@ class OverloadedLookup t k v | t -> k, t -> v where overloadedLookup :: k -> t -
 instance Eq k => OverloadedLookup [(k,v)] k v where overloadedLookup = List.lookup
 instance Ord k => OverloadedLookup (M.Map k v) k v where overloadedLookup = M.lookup
 
-lookup :: (OverloadedLookup t k v, Show k, Show t, Failable m, Applicative m) => k -> t -> m v
+lookup :: (OverloadedLookup t k v, Show k, Show t, MonadFail m, Applicative m) => k -> t -> m v
 lookup k xs = lookupIn (shorten 256 (T.pack $ show xs)) k xs
 
 -- this is a lookup variant for where there is no show instance for the collection
-lookupIn :: (OverloadedLookup t k v, Show k, Failable m, Applicative m) => T.Text -> k -> t -> m v
-lookupIn name k = maybe (err $ "Can't lookup " <> T.pack (show k) <> " in " <> name) pure . overloadedLookup k
+lookupIn :: (OverloadedLookup t k v, Show k, MonadFail m, Applicative m) => T.Text -> k -> t -> m v
+lookupIn name k =
+  maybe (fail $ "Can't lookup " <> show k <> " in " <> T.unpack name) pure . overloadedLookup k
 
 shorten :: Int -> T.Text -> T.Text
 shorten maxLen msg =
