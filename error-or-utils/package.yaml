@@ -1,8 +1,8 @@
-name:                error-or
+name:                error-or-utils
 version:             0.1.0.0
 #synopsis:
 #description:
-homepage:            https://github.com/luntain/error-or#readme
+homepage:            https://github.com/luntain/error-or-utils#readme
 license:             BSD3
 author:              Kamil Dworakowski
 maintainer:          kamil@dworakowski.name
@@ -13,6 +13,7 @@ extra-source-files:
 
 dependencies:
   - base >= 4.7 && < 5
+  - error-or
   - text
   - containers
 
