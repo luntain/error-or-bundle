@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.31.2.
+-- This file has been generated from package.yaml by hpack version 0.33.0.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 78f272b62977dc5ee881b5ca7e4f55f1209eb65ecac92b92269909a05e57a66d
+-- hash: bb497694ca3466b00ef76d481d2a8bdbe9faf834a2abff6c0039d06890f3cec7
 
 name:           error-or
 version:        0.1.0.0
@@ -22,8 +22,6 @@ extra-source-files:
 library
   exposed-modules:
       Data.ErrorOr
-      Data.Validation
-      ErrorUtils
   other-modules:
       Paths_error_or
   hs-source-dirs:
