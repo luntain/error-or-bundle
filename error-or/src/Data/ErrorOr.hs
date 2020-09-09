@@ -7,8 +7,15 @@
 {-# LANGUAGE UndecidableInstances #-}
 
 -- inspired by https://github.com/janestreet/base/blob/master/src/or_error.mli
+
+-- | Provides composable and hierarchical errors, with pretty
+-- printing. The errors are accumulated in a tree like structure,
+-- 'ErrorAcc'. 'ErrorAcc' is disigned to be read by humans, via
+-- 'pretty', not dispatched on by code. Using 'toE' to convert an
+-- 'ErrorOr' to IO throws (in case it holds an error) a 'PrettyErrAcc'
+-- that uses 'pretty' in the show instance.
 module Data.ErrorOr
-  ( ErrorOr,
+  ( ErrorOr(..),
     err,
     tag,
     pattern Error,
@@ -16,7 +23,10 @@ module Data.ErrorOr
     isOK,
     isError,
     fromOK,
-    toE,
+    ErrorConv(..),
+    ErrorAcc(..),
+    pretty,
+    PrettyErrAcc (..),
   )
 where
 
@@ -27,8 +37,8 @@ import Data.Semigroup
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 
--- | Use 'sequenceA' and 'sequenceA_' to compose errors.
-newtype ErrorOr a = ErrorOr {toEither :: Either ErrorAcc a}
+-- | Use 'Applicative'\'s 'sequenceA' and 'sequenceA_' to compose 'ErrorOr's as opposed to 'Monad' derived functions like 'sequence'.
+newtype ErrorOr a = ErrorOr {errorOrToEither :: Either ErrorAcc a}
   deriving (Show, Read, Eq, Ord, Functor, Foldable, Traversable)
 
 pattern OK :: a -> ErrorOr a
@@ -38,22 +48,23 @@ pattern Error :: ErrorAcc -> ErrorOr a
 pattern Error err <- ErrorOr (Left err)
 
 data ErrorAcc
-  = List (Seq.Seq ErrorAcc)
+  = Message T.Text
+  | List (Seq.Seq ErrorAcc)
   | Tag T.Text ErrorAcc
-  | Message T.Text
   deriving (Show, Read, Eq, Ord)
 
 -- | Could be defined as 'err = fail . Text.pack'
 err :: T.Text -> ErrorOr a
 err = ErrorOr . Left . Message
 
--- | Annotate the error to add context information.
+-- | Annotate the error with context information.
 tag :: T.Text -> ErrorOr a -> ErrorOr a
 tag str res
   | isOK res = res
   | otherwise = mapError (Tag str) res
 
--- | To provide a human readable exceptions. (Exception class' displayException does not seem to be used by GHC)
+-- | A wrapper over 'ErrorAcc' to provide human readable exceptions.
+-- (Exception class' displayException does not seem to be used by GHC)
 -- https://stackoverflow.com/questions/55490766/why-doesn-t-ghc-use-my-displayexception-method
 newtype PrettyErrAcc = PrettyErrAcc {unPrettyErrAcc :: ErrorAcc}
 
@@ -62,7 +73,10 @@ instance Show PrettyErrAcc where
 
 instance Exc.Exception PrettyErrAcc where
 
-pretty :: Int -> ErrorAcc -> T.Text
+-- | Pretty print the error.
+pretty :: Int
+  -- ^ Initial indent, usually 0
+  -> ErrorAcc -> T.Text
 pretty indent (Message txt) = T.replicate indent " " <> txt
 pretty indent (List errs) = T.intercalate "\n" . map (pretty indent) . toList $ errs
 pretty indent (Tag str err) = T.intercalate "\n" [pretty indent (Message str), pretty (indent + 4) err]
@@ -90,11 +104,20 @@ instance Monoid a => Monoid (ErrorOr a) where
   mappend = (<>)
   mempty = pure mempty
 
--- | OrError's instances for Monad and Applicative don't align, but
--- the Monad and MonadFail are too useful (as in convenient) to pass on.
+-- | OrError's instances for 'Monad' and 'Applicative' don't align,
+-- but the 'Monad' and 'MonadFail' instances are too useful (as in
+-- convenient) to pass on.
+-- In particular, composing two failing actions using the
+-- 'Applicative' instance creates a /composite/ error, where as
+-- composing the same two actions using the 'Monad' instance '(>>)'
+-- produces only the error from the first action in the sequence. This
+-- is a consequence of the fact that for Monads executing the second
+-- of two actions ('(>>)' is defined in terms of '(>>=)') requires the result from the first to be passed to
+-- the second: the very result that is not available if the first
+-- action fails!
 instance Monad ErrorOr where
   return = pure
-  ErrorOr either >>= f = ErrorOr (either >>= fmap toEither f)
+  ErrorOr either >>= f = ErrorOr (either >>= fmap errorOrToEither f)
 
 instance MonadFail ErrorOr where
   fail = ErrorOr . Left . Message . T.pack
@@ -119,7 +142,7 @@ fromOK (Error err) = error (T.unpack $ pretty 0 err)
 class ErrorConv t s where
   toE :: t a -> s a
 
--- | Convert from ErrorOr to IO. It throws an exception if this is an error.
+-- | Convert from ErrorOr to IO. 'toE' throws a 'PrettyErrAcc' if the input holds an error.
 instance ErrorConv ErrorOr IO where
   toE (OK val) = pure val
   toE (Error e) = Exc.throwIO (PrettyErrAcc e)
