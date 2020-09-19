@@ -12,6 +12,8 @@ category:            data,library
 extra-source-files:
 - README.md
 
+tested-with: GHC==8.8.1
+
 dependencies:
   - base >= 4.7 && < 5
   - text
