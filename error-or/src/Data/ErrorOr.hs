@@ -105,7 +105,11 @@ instance Semigroup a => Semigroup (ErrorOr a) where
   l@(ErrorOr (Left _)) <> _ = l
   _ <> r = r
 
-instance Monoid a => Monoid (ErrorOr a) where
+instance (
+#if __GLASGOW_HASKELL__ < 880
+    Semigroup (ErrorOr a),
+#endif
+    Monoid a) => Monoid (ErrorOr a) where
   mappend = (<>)
   mempty = pure mempty
 
