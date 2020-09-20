@@ -36,7 +36,6 @@ import Data.Foldable (toList)
 import Data.Semigroup
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
-import Control.Monad.Fail (MonadFail(..)) -- it is in Prelude, but not in base 4.9.0.1 Prelude
 
 -- | Use 'Applicative'\'s 'sequenceA' and 'sequenceA_' to compose 'ErrorOr's as opposed to 'Monad' derived functions like 'sequence'.
 newtype ErrorOr a = ErrorOr {errorOrToEither :: Either ErrorAcc a}

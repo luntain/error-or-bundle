@@ -12,10 +12,10 @@ category:            data,library
 extra-source-files:
 - README.md
 
-tested-with: GHC==8.0.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
+tested-with: GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
 
 dependencies:
-  - base >= 4.9 && < 5 # Need base 4.9 due to Data.Semigroup
+  - base >= 4.10.1 && < 5 # Need base 4.9 due to Data.Semigroup
   - text
   - containers
 
