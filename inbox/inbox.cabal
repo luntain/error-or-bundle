@@ -4,10 +4,12 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 275b23c29a6e2e0c4b8095ebcbbb8d4f57d1f6af868b2ed0c9e1b4a25fcb8cca
+-- hash: 5d2ba24ee5deca072bd9af19484ac27f0e84d632228f6e79c1b7e9e83436b549
 
 name:           inbox
 version:        0.1.0.0
+synopsis:       Inbox for asychronous messages
+description:    Facilitates testing of asynchronous code
 category:       Testing
 homepage:       https://github.com/luntain/inbox#readme
 author:         Kamil Dworakowski

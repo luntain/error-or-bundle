@@ -1,7 +1,7 @@
 name:                inbox
 version:             0.1.0.0
-#synopsis:
-#description:
+synopsis:            Inbox for asychronous messages
+description:         Facilitates testing of asynchronous code
 homepage:            https://github.com/luntain/inbox#readme
 license:             BSD3
 author:              Kamil Dworakowski
