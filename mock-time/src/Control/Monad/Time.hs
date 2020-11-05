@@ -6,10 +6,8 @@ module Control.Monad.Time
   )
 where
 
-import qualified Control.Concurrent
 import Control.Monad.Trans
 import Data.Time hiding (getCurrentTime)
-import qualified Data.Time
 
 -- | An interface for time related functions
 class Monad m => MonadTime m where

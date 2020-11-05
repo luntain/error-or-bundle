@@ -38,6 +38,7 @@ extra-deps:
 #- git: https://github.com/luntain/error-or.git
 #  commit: 6ffcddb9e02f916b402b31f16aab2c171b9cd2ef
 - ../error-or
+- ../error-or-utils
 - ../inbox
 
 # Override default flag values for local packages and extra-deps

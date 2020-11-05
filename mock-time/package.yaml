@@ -37,3 +37,4 @@ tests:
     main: Tests.hs
     dependencies:
     - mock-time
+    - error-or-utils

@@ -3,7 +3,7 @@ import Control.Monad
 import Data.ErrorOr
 import Data.Time
 import Data.Validation
-import qualified Test.Inbox as Inbox
+import Test.Inbox
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
 import qualified Test.SimulatedTime as SimTime
@@ -18,12 +18,12 @@ main =
       "tests"
       [ testCase "put" $ do
           tenv <- SimTime.create (UTCTime (fromGregorian 2015 7 18) 0)
-          box <- Inbox.new
-          _ <- forkIO (SimTime.threadDelay' tenv 50000 >> Inbox.put box "50ms")
-          _ <- forkIO (SimTime.threadDelay' tenv 500000 >> Inbox.put box ".5s")
-          _ <- forkIO (SimTime.threadDelay' tenv 1000000 >> Inbox.put box "1s")
+          box <- newInbox
+          _ <- forkIO (SimTime.threadDelay' tenv 50000 >> putInbox box "50ms")
+          _ <- forkIO (SimTime.threadDelay' tenv 500000 >> putInbox box ".5s")
+          _ <- forkIO (SimTime.threadDelay' tenv 1000000 >> putInbox box "1s")
           t0 <- Data.Time.getCurrentTime
-          Inbox.wait box (Inbox.equalTo "50ms")
+          takeInbox box (equalTo "50ms")
           t1 <- Data.Time.getCurrentTime
           let elapsed = diffUTCTime t1 t0
           toE $ (elapsed <! 0.070) <> (elapsed >! 0.049),
@@ -41,18 +41,18 @@ main =
           shuffled <- shuffle sorted
           return . monadicIO . run $ do
             t <-  SimTime.create (UTCTime (fromGregorian 2015 7 18) 0)
-            inbox <- Inbox.new
+            inbox <- newInbox
             t0 <- Data.Time.getCurrentTime
-            forM_ shuffled (\delay -> void (forkIO (SimTime.threadDelay' t delay >> Inbox.put inbox (show delay))))
-            Inbox.wait inbox (Inbox.equalTo "50000")
+            forM_ shuffled (\delay -> void (forkIO (SimTime.threadDelay' t delay >> putInbox inbox (show delay))))
+            takeInbox inbox (equalTo "50000")
             elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
             toE ((elapsed <! 0.085) <> (elapsed >! 0.049))
             SimTime.advance t 0.5
-            Inbox.wait inbox (Inbox.equalTo "500000")
+            takeInbox inbox (equalTo "500000")
             elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
             toE (elapsed <! 0.1)
             SimTime.advance t 0.3
-            Inbox.wait inbox (Inbox.equalTo "1000000")
+            takeInbox inbox (equalTo "1000000")
             elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
             toE ((elapsed <! 0.4) <> (elapsed >! 0.2))
       ]

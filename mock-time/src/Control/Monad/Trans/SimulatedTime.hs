@@ -18,9 +18,7 @@ module Control.Monad.Trans.SimulatedTime
 where
 
 import Control.Applicative (Alternative)
-import Control.Concurrent hiding (threadDelay)
 import qualified Control.Concurrent
-import Control.Concurrent.STM
 import Control.Monad.Catch (MonadCatch, MonadMask(..), MonadThrow)
 import Control.Monad.Cont (MonadCont)
 import Control.Monad.Except (MonadError)
@@ -28,10 +26,8 @@ import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.RWS (MonadState, MonadWriter)
 import Control.Monad.Reader
 import Control.Monad.Time
-import Control.Monad.Trans (MonadIO (..), MonadTrans (..))
-import Control.Monad.Trans.Resource (MonadUnliftIO, MonadResource)
+import Control.Monad.Trans.Resource (MonadResource)
 import Control.Monad.Zip (MonadZip)
-import Data.Time hiding (getCurrentTime)
 import qualified Data.Time
 import Control.Monad.IO.Unlift
 import Test.SimulatedTime
