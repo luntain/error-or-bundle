@@ -32,6 +32,7 @@ import qualified Data.Time
 import Control.Monad.IO.Unlift
 import Test.SimulatedTime
 
+-- | A newtype wrapper over `ReaderT` `TimeEnv`
 newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv m a}
   deriving
     ( Functor,
@@ -55,6 +56,7 @@ newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv
       PrimMonad
     )
 
+-- | Run the reader
 runSimulatedTimeT :: SimulatedTimeT m a -> TimeEnv -> m a
 runSimulatedTimeT = runReaderT . unSimulatedTimeT
 
@@ -85,8 +87,12 @@ instance MonadMask m => MonadMask (SimulatedTimeT m) where
     generalBracket acquire release inner =
       SimulatedTimeT $ generalBracket (unSimulatedTimeT acquire) (fmap (fmap unSimulatedTimeT) release) (fmap (unSimulatedTimeT) inner)
 
--- | Unadulturated time. Allows to conveniently call MonadTime actions from
--- test where you don't want to import 'Control.Monad.Time.DefaultInstance'
+-- | An implementation for `MonadTime` that uses real time directly,
+-- not allowing for control. Use it from code where you need to choose
+-- implementation for MockTime, but don't need to control the time.
+--
+-- Example: use this one in the executable, while `SimulatedTimeT` is
+-- used in tests that need to control time.
 newtype RealTimeT m a = RealTimeT {runRealTimeT :: m a}
   deriving
     ( Functor,

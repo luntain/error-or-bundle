@@ -1,0 +1,7 @@
+cradle:
+  stack:
+    - path: "./src"
+      component: "mock-time:lib"
+
+    - path: "./tests"
+      component: "mock-time:test:my-test-suite"
