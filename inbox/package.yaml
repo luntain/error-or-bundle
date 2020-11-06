@@ -1,0 +1,22 @@
+name:                inbox
+version:             0.1.0.0
+synopsis:            Inbox for asychronous messages
+description:         Facilitates testing of asynchronous code
+homepage:            https://github.com/luntain/inbox#readme
+license:             BSD3
+author:              Kamil Dworakowski
+maintainer:          kamil@dworakowski.name
+copyright:           2020 Kamil Dworakowski
+category:            Testing
+extra-source-files:
+- README.md
+
+dependencies:
+  - base >= 4.7 && < 5
+  - text
+  - async
+  - error-or
+  - time
+
+library:
+  source-dirs:      src

@@ -1,0 +1,37 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.33.0.
+--
+-- see: https://github.com/sol/hpack
+--
+-- hash: 972958c36558a0613fe804b30ea6a7c35d9b7c574c98a7c1f324e898c320da21
+
+name:           inbox
+version:        0.1.0.0
+synopsis:       Inbox for asychronous messages
+description:    Facilitates testing of asynchronous code
+category:       Testing
+homepage:       https://github.com/luntain/inbox#readme
+author:         Kamil Dworakowski
+maintainer:     kamil@dworakowski.name
+copyright:      2020 Kamil Dworakowski
+license:        BSD3
+license-file:   LICENSE
+build-type:     Simple
+extra-source-files:
+    README.md
+
+library
+  exposed-modules:
+      Test.Inbox
+  other-modules:
+      Paths_inbox
+  hs-source-dirs:
+      src
+  build-depends:
+      async
+    , base >=4.7 && <5
+    , error-or
+    , text
+    , time
+  default-language: Haskell2010
