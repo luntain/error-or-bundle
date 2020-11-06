@@ -1,13 +1,13 @@
 name:                error-or-utils
-version:             0.1.0.0
-#synopsis:
-#description:
+version:             0.1.1.0
+synopsis:            Utilities using ErrorOr datatype
+description:         Builds on the error type defined in the error-or package
 homepage:            https://github.com/luntain/error-or-utils#readme
 license:             BSD3
 author:              Kamil Dworakowski
 maintainer:          kamil@dworakowski.name
 copyright:           2020 Kamil Dworakowski
-category:            data,library
+category:            data,library,testing
 extra-source-files:
 - README.md
 

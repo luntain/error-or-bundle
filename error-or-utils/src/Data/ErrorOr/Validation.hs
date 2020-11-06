@@ -1,14 +1,17 @@
 {-# Language OverloadedStrings #-}
-module Data.Validation
+-- | Utilities for data validation
+module Data.ErrorOr.Validation
   ( (>!),
     (>=!),
     (<!),
     (<=!),
     (=!),
+    (/=!),
     ensure,
     ensureIsNothing,
     ensureIsJust,
     approxEqual,
+    ensureAll,
   )
 where
 
