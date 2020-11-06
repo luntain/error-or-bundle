@@ -4,7 +4,7 @@ import Control.Concurrent (forkIO)
 import Control.Monad
 import Data.ErrorOr
 import Data.Time
-import Data.Validation
+import Data.ErrorOr.Validation
 import Test.Inbox
 import Test.QuickCheck
 import Test.QuickCheck.Monadic
