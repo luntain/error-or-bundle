@@ -1,0 +1,8 @@
+resolver: lts-15.7
+packages:
+- error-or
+- error-or-utils
+- inbox
+- mock-time
+extra-deps:
+
