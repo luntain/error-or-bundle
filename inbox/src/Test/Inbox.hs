@@ -1,3 +1,5 @@
+{-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-|
@@ -35,21 +37,41 @@ import Data.IORef (newIORef, readIORef, atomicModifyIORef, IORef)
 import Control.Monad.IO.Class (liftIO, MonadIO)
 import qualified Data.Text as T
 import Data.ErrorOr
-import Control.Concurrent (threadDelay)
+import Control.Concurrent
+import Control.Concurrent.Async
 import Data.Maybe (isJust)
 import Control.Monad (unless)
 import Data.Foldable (sequenceA_)
+import Control.Monad (forM_)
+import Control.Exception
+import Data.Time
+
 
 -- | An entity holding a number of messages of type `a`
-data Inbox a = Inbox (IORef [a])
+data Inbox a =
+  Inbox (IORef (MessagesAndObservers a))
+
+data MessagesAndObservers a = MessagesAndObservers {
+  messages :: ![a]
+  , observers :: !Observers
+  }
+
+type Observer = MVar ()
+type Observers = [Observer]
 
 -- | Create an empty Inbox
 newInbox :: IO (Inbox a)
-newInbox = Inbox `fmap` newIORef []
+newInbox = Inbox `fmap` newIORef (MessagesAndObservers [] [])
 
 -- | Add a message to the Inbox
-putInbox :: MonadIO m => Inbox a -> a -> m ()
-putInbox (Inbox r) x = liftIO (atomicModifyIORef r ((,()) . (x:)))
+putInbox :: forall m a . MonadIO m => Inbox a -> a -> m ()
+putInbox (Inbox r) newmsg = do
+  liftIO $ mask_ $ do
+    observers <- atomicModifyIORef r f
+    mapM_ (flip putMVar ()) observers
+  where
+    f :: MessagesAndObservers a -> (MessagesAndObservers a, [MVar ()])
+    f MessagesAndObservers {..} = (MessagesAndObservers (newmsg:messages) [], observers)
 
 -- | `takeInbox'` with a timeout of 3s
 takeInbox :: (MonadIO m, Show a) => Inbox a -> Filter a b -> m b
@@ -57,23 +79,44 @@ takeInbox = takeInbox' 3
 
 -- | Take a single message out of the inbox, waiting for it up to the specified timeout in seconds.
 --   It respects the order the messages were inserted into the inbox.
-takeInbox' :: (MonadIO m, Show a) =>
-          Float -- ^ timeout in seconds
-           -> Inbox a
-           -> Filter a b -> m b
+takeInbox' ::
+  forall m a b.
+  (MonadIO m, Show a) =>
+  -- | timeout in seconds
+  Float ->
+  Inbox a ->
+  Filter a b ->
+  m b
 takeInbox' sec t@(Inbox r) filter@(Filter text f) = do
-  found <- liftIO (atomicModifyIORef r (first reverse . pick f . reverse))
-  case found of
-    Just x -> return x
-    Nothing ->
-      if sec < 0.1
-        then do
-          xs <- liftIO $ readIORef r
+  observer <- liftIO $ newEmptyMVar
+  match <- liftIO $ mask_ $ do -- mask, so we are not interrupted before notifying the observers
+    match <- atomicModifyIORef r (checkInbox observer)
+    -- I got a bit ahead of myself. In the current design there are no
+    -- observers waiting for decrease of messages in the Inbox, but I
+    -- am considering making the `assertEmpty` observe the Inbox
+    forM_ (fst <$> match) $ mapM_ (flip putMVar ()) . reverse
+    return (snd <$> match)
+  case match of
+    Just msg -> return msg
+    Nothing -> do
+      time0 <- liftIO getCurrentTime
+      res <- liftIO $ race (threadDelay (round $ sec * 10^6)) (readMVar observer)
+      case res of
+        Right () -> do
+          -- something changed in the Inbox, let's retest the filter
+          now <- liftIO getCurrentTime
+          let elapsed = diffUTCTime time0 now
+          takeInbox' (sec - realToFrac elapsed) t filter
+        Left () -> do
+          xs <- liftIO $ messages <$> readIORef r
           error (T.unpack $ "Timed out waiting for `" <> text <> "`. Contents: " <> (T.pack $ show xs))
-        else do
-          liftIO (threadDelay (20 * 1000))
-          takeInbox' (sec - 0.02) t filter
  where
+    checkInbox :: Observer -> MessagesAndObservers a -> (MessagesAndObservers a, Maybe (Observers, b))
+    checkInbox observer MessagesAndObservers{..} =
+      case first reverse . pick f . reverse $ messages of
+        (_, Nothing) -> (MessagesAndObservers messages (observer:observers), Nothing)
+        (newMsgs, Just matched) -> (MessagesAndObservers newMsgs [], Just (observers, matched))
+
     pick _ [] = ([], Nothing)
     pick f (x:xs) =
         case f x of
@@ -108,7 +151,7 @@ predicate name p = Filter name (\x -> if p x then Just x else Nothing)
 -- | Assert the Inbox is empty
 assertEmpty :: Show a => Inbox a -> IO (ErrorOr ())
 assertEmpty (Inbox r) = do
-  xs <- readIORef r
+  xs <- messages <$> readIORef r
   case xs of
     [] -> pure (pure ())
     _ -> return . tag "Unconsumed messages" . sequenceA_ . map (err . T.pack . show) $ xs
@@ -116,7 +159,7 @@ assertEmpty (Inbox r) = do
 -- | Assert that the filter does not match anything in the Inbox
 assertEmpty' :: (Show a, MonadIO m) => Inbox a -> Filter a b -> m ()
 assertEmpty' (Inbox r) (Filter name p) = do
-  elems <- liftIO (filter (isJust.p) <$> readIORef r)
+  elems <- liftIO (filter (isJust.p) . messages <$> readIORef r)
   unless (null elems) $ do
     liftIO
       . toE
