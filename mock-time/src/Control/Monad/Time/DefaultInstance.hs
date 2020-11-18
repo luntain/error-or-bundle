@@ -5,7 +5,7 @@ module Control.Monad.Time.DefaultInstance,
 module Control.Monad.Time) where
 
 import Control.Monad.Time
-import Control.Monad.Trans (liftIO, MonadIO)
+import Control.Monad.Trans (liftIO)
 
 import Data.Time (getCurrentTime)
 import Control.Concurrent (threadDelay)
