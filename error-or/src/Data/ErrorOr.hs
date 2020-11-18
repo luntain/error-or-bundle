@@ -1,3 +1,4 @@
+{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -27,15 +28,15 @@ module Data.ErrorOr
     ErrorAcc(..),
     pretty,
     PrettyErrAcc (..),
+    tagIO,
   )
 where
 
 import qualified Control.Exception as Exc
-import Control.Monad.IO.Class
 import Data.Foldable (toList)
-import Data.Semigroup
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
+import GHC.IO.Exception (IOException)
 
 -- | Use 'Applicative'\'s 'sequenceA' and 'sequenceA_' to compose 'ErrorOr's as opposed to 'Monad' derived functions like 'sequence'.
 newtype ErrorOr a = ErrorOr {errorOrToEither :: Either ErrorAcc a}
@@ -53,7 +54,7 @@ data ErrorAcc
   | Tag T.Text ErrorAcc
   deriving (Show, Read, Eq, Ord)
 
--- | Could be defined as 'err = fail . Text.pack'
+-- | Produce an error
 err :: T.Text -> ErrorOr a
 err = ErrorOr . Left . Message
 
@@ -72,6 +73,29 @@ instance Show PrettyErrAcc where
   show = T.unpack  . pretty 0 . unPrettyErrAcc
 
 instance Exc.Exception PrettyErrAcc where
+
+-- | Tag an exception with an annotation.
+--
+-- It acts on two types of exceptions: `IOException` and
+-- `PrettyErrAcc`. For `PrettyErrAcc` it is streightforward tagging.
+-- For `IOException`, otoh, it converts the error message into Text
+-- via String and turns it into `PrettyErrAcc` tagged with provided
+-- adnotation.
+--
+-- This is rather a convenience function. Sometimes it is convenient
+-- to 'fail "msg"' in IO, and tag it higher up with some context. The
+-- need for tagIO often comes up with Data.ErrorOr.Utils.lookup (from
+-- error-or-utils package) when used from IO, which is overloaded for
+-- MonadFail.
+tagIO :: T.Text -> IO a -> IO a
+tagIO str action =
+  (action
+     `Exc.catch` \(e :: IOException) ->
+         Exc.throwIO $ PrettyErrAcc $ Tag str (Message (T.pack $ show e)))
+
+     `Exc.catch` \(e :: PrettyErrAcc) ->
+         Exc.throwIO $ PrettyErrAcc $ Tag str (unPrettyErrAcc e)
+
 
 -- | Pretty print the error.
 pretty :: Int
