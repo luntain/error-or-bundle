@@ -48,11 +48,11 @@ main =
             takeInbox inbox (equalTo 50000)
             elapsed <- flip diffUTCTime t0 <$> Data.Time.getCurrentTime
             toE (elapsed >! 0.049)
-            toE =<< assertEmpty inbox
+            toE =<< expectEmpty inbox
             SimTime.advance fluxCapacitor 1
             takeInbox inbox (equalTo $ 10^6)
-            toE . tag "1s" =<< assertEmpty inbox
+            toE . tag "1s" =<< expectEmpty inbox
             SimTime.advance fluxCapacitor 10
             takeInbox inbox (equalTo $ 10^7)
-            toE . tag "10s" =<< assertEmpty inbox
+            toE . tag "10s" =<< expectEmpty inbox
       ]

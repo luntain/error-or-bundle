@@ -26,8 +26,8 @@ module Test.Inbox (
   , equalTo
   , predicate
 
-  , assertEmpty
-  , assertEmpty'
+  , expectEmpty
+  , expectEmpty'
 )
  where
 
@@ -148,17 +148,17 @@ predicate :: T.Text -- ^ name
     -> Filter a a
 predicate name p = Filter name (\x -> if p x then Just x else Nothing)
 
--- | Assert the Inbox is empty
-assertEmpty :: Show a => Inbox a -> IO (ErrorOr ())
-assertEmpty (Inbox r) = do
+-- | Validate that the inbox has no messages inside at the moment.
+expectEmpty :: Show a => Inbox a -> IO (ErrorOr ())
+expectEmpty (Inbox r) = do
   xs <- messages <$> readIORef r
   case xs of
     [] -> pure (pure ())
     _ -> return . tag "Unconsumed messages" . sequenceA_ . map (err . T.pack . show) $ xs
 
--- | Assert that the filter does not match anything in the Inbox
-assertEmpty' :: (Show a, MonadIO m) => Inbox a -> Filter a b -> m ()
-assertEmpty' (Inbox r) (Filter name p) = do
+-- | Validate that the filter does not match anything in the Inbox
+expectEmpty' :: (Show a, MonadIO m) => Inbox a -> Filter a b -> m ()
+expectEmpty' (Inbox r) (Filter name p) = do
   elems <- liftIO (filter (isJust.p) . messages <$> readIORef r)
   unless (null elems) $ do
     liftIO
