@@ -8,6 +8,7 @@
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
 
+-- | An implementation of `Control.Monad.Time.MonadTime` with a monad transformer.
 module Control.Monad.Trans.SimulatedTime
   ( SimulatedTimeT (..),
     runSimulatedTimeT,

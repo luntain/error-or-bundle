@@ -9,7 +9,11 @@ where
 import Control.Monad.Trans
 import Data.Time hiding (getCurrentTime)
 
--- | An interface for time related functions
+-- | A class interface with overridable time implementation.
+-- Import `Control.Monad.Time.DefaultInstance` for the default
+-- implementation using the real underlying time functions.
+-- See `Control.Monad.Trans.SimulatedTime` for an instance
+-- that allows to control time.
 class Monad m => MonadTime m where
   getCurrentTime :: m UTCTime
   threadDelay :: Int -> m ()
