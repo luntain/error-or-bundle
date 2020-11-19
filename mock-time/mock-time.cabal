@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5ce151a0a0bf1dbd4cfe2b626a72ab8bdca5282884a7c8d162e96321b2b9a5d2
+-- hash: aea8c5b79eeeb252ca0ef6d4f6e5e888672b973265e920222b48f4fba28654bc
 
 name:           mock-time
 version:        0.1.0
@@ -17,6 +17,7 @@ maintainer:     kamil@dworakowski.name
 copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
+tested-with:    GHC==8.0.1, GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
 build-type:     Simple
 extra-source-files:
     README.md

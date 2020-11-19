@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 4cfc989f2fbb2f120ab51c18d366f150142e4a16df60381043459e6b671d4c29
+-- hash: 2c277fd6868c767ff3555a498d12d4d499aa79026f19309cba962439e1170c19
 
 name:           inbox
 version:        0.1.0
@@ -17,6 +17,7 @@ maintainer:     kamil@dworakowski.name
 copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
+tested-with:    GHC==8.0.1, GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
 build-type:     Simple
 extra-source-files:
     README.md
