@@ -54,7 +54,7 @@ data ErrorAcc
   | Tag T.Text ErrorAcc
   deriving (Show, Read, Eq, Ord)
 
--- | Produce an error
+-- | Produce an error.
 err :: T.Text -> ErrorOr a
 err = ErrorOr . Left . Message
 
@@ -83,8 +83,8 @@ instance Exc.Exception PrettyErrAcc where
 -- adnotation.
 --
 -- This is rather a convenience function. Sometimes it is convenient
--- to 'fail "msg"' in IO, and tag it higher up with some context. The
--- need for tagIO often comes up with Data.ErrorOr.Utils.lookup (from
+-- to @fail "msg"@ in IO, and tag it higher up with some context. The
+-- need for 'tagIO' often comes with 'Data.ErrorOr.Utils.lookup' (from
 -- error-or-utils package) when used from IO, which is overloaded for
 -- MonadFail.
 tagIO :: T.Text -> IO a -> IO a
@@ -157,7 +157,7 @@ mapError :: (ErrorAcc -> ErrorAcc) -> ErrorOr a -> ErrorOr a
 mapError f (ErrorOr (Left e)) = ErrorOr (Left (f e))
 mapError _ ok = ok
 
--- | Like 'fromRight'
+-- | A partial function, like 'fromRight'.
 fromOK :: ErrorOr a -> a
 fromOK (OK a) = a
 fromOK (Error err) = error (T.unpack $ pretty 0 err)

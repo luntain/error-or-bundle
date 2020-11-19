@@ -1,5 +1,8 @@
 {-# LANGUAGE UndecidableInstances #-}
 {-# LANGUAGE FlexibleInstances #-}
+-- | The default instance for 'MonadTime', using only the underlying system time.
+-- This is to be used in production code, or in thoses tests where controling time
+-- is not needed.
 module Control.Monad.Time.DefaultInstance (
 module Control.Monad.Time.DefaultInstance,
 module Control.Monad.Time) where

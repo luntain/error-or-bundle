@@ -75,6 +75,8 @@ instance MonadIO m => MonadTime (SimulatedTimeT m) where
     env <- ask
     liftIO $ threadDelay' env delay
 
+-- | Use 'TimeEnv' to control the simulated time, for instance call
+-- 'Time.SimlatedTime.advance' on it to advance in simulated time.
 getTimeEnv :: Monad m => SimulatedTimeT m TimeEnv
 getTimeEnv = SimulatedTimeT ask
 
