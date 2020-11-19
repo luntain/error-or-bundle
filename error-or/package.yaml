@@ -12,8 +12,10 @@ category:            data,library
 extra-source-files:
 - README.md
 
+tested-with: GHC==8.0.1, GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
+
 dependencies:
-  - base >= 4.7 && < 5
+  - base >= 4.9 && < 5 # Need base 4.9 due to Data.Semigroup and MonadFail
   - text
   - containers
 

@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 5b88539ac6e1a701a2915fa08cbcdc13e0abe07b36f3af99c99488b12fe70f7b
+-- hash: 1f6147e25798fbc3b9bfd502fce48eb39eadf8e2b4d160c40664b9c6e1db182b
 
 name:           error-or
 version:        0.1.1.0
@@ -17,6 +17,7 @@ maintainer:     kamil@dworakowski.name
 copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
+tested-with:    GHC==8.0.1, GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
 build-type:     Simple
 extra-source-files:
     README.md
@@ -29,7 +30,7 @@ library
   hs-source-dirs:
       src
   build-depends:
-      base >=4.7 && <5
+      base >=4.9 && <5
     , containers
     , text
   default-language: Haskell2010

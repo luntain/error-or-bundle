@@ -1,4 +1,5 @@
 {-# LANGUAGE ScopedTypeVariables #-}
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE DeriveTraversable #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE FlexibleInstances #-}
@@ -37,6 +38,10 @@ import Data.Foldable (toList)
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
 import GHC.IO.Exception (IOException)
+#if __GLASGOW_HASKELL__ < 880
+import Prelude hiding (fail)
+import Control.Monad.Fail (MonadFail(..))
+#endif
 
 -- | Use 'Applicative'\'s 'sequenceA' and 'sequenceA_' to compose 'ErrorOr's as opposed to 'Monad' derived functions like 'sequence'.
 newtype ErrorOr a = ErrorOr {errorOrToEither :: Either ErrorAcc a}
@@ -124,7 +129,11 @@ instance Semigroup a => Semigroup (ErrorOr a) where
   l@(ErrorOr (Left _)) <> _ = l
   _ <> r = r
 
-instance Monoid a => Monoid (ErrorOr a) where
+instance (
+#if __GLASGOW_HASKELL__ < 880
+    Semigroup (ErrorOr a),
+#endif
+    Monoid a) => Monoid (ErrorOr a) where
   mappend = (<>)
   mempty = pure mempty
 
