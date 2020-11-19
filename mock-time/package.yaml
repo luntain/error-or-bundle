@@ -1,11 +1,11 @@
 name:                mock-time
-version:             0.1.0.0
-#synopsis:
-#description:
-homepage:            https://github.com/luntain/mock-time
+version:             0.1.0
+synopsis:            Mock time in tests
+description:         Allows to mock out Data.Time.getCurrentTime and Control.Concrurent.threadDelay
+homepage:            https://github.com/luntain/error-or-bundle/blob/master/mock-time#readme
 license:             BSD3
+maintainer:          kamil@dworakowski.name
 author:              Kamil Dworakowski
-maintainer:          example@example.com
 copyright:           2020 Kamil Dworakowski
 category:            Test
 extra-source-files:
@@ -21,12 +21,6 @@ dependencies:
   - primitive
   - unliftio-core
   - error-or
-  - inbox
-
-  - tasty
-  - tasty-quickcheck
-  - tasty-hunit
-  - QuickCheck
 
 library:
     source-dirs:      src
@@ -38,4 +32,9 @@ tests:
     dependencies:
     - mock-time
     - error-or-utils
+    - tasty
+    - tasty-quickcheck
+    - tasty-hunit
+    - QuickCheck
+    - inbox
     ghc-options: -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-qn1 -Wall

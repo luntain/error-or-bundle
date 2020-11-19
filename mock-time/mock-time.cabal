@@ -4,14 +4,16 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: dc9aad154c9c7c6e54bdc7f7c966cde521c8c9fc4f7bb055a55723b1f91542e9
+-- hash: 5ce151a0a0bf1dbd4cfe2b626a72ab8bdca5282884a7c8d162e96321b2b9a5d2
 
 name:           mock-time
-version:        0.1.0.0
+version:        0.1.0
+synopsis:       Mock time in tests
+description:    Allows to mock out Data.Time.getCurrentTime and Control.Concrurent.threadDelay
 category:       Test
-homepage:       https://github.com/luntain/mock-time
+homepage:       https://github.com/luntain/error-or-bundle/blob/master/mock-time#readme
 author:         Kamil Dworakowski
-maintainer:     example@example.com
+maintainer:     kamil@dworakowski.name
 copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
@@ -30,18 +32,13 @@ library
   hs-source-dirs:
       src
   build-depends:
-      QuickCheck
-    , base >=4.7 && <5
+      base >=4.7 && <5
     , error-or
     , exceptions
-    , inbox
     , mtl
     , primitive
     , resourcet
     , stm
-    , tasty
-    , tasty-hunit
-    , tasty-quickcheck
     , time
     , unliftio-core
   default-language: Haskell2010

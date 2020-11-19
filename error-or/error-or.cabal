@@ -4,14 +4,14 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aeba006a8730719bf8380b4e2993d8f520f7ef49d596e59bbbb90318db99040d
+-- hash: 5b88539ac6e1a701a2915fa08cbcdc13e0abe07b36f3af99c99488b12fe70f7b
 
 name:           error-or
-version:        0.1.0.0
+version:        0.1.1.0
 synopsis:       Composable, hierarchical errors.
 description:    An Applicative Functor with error accumulation. Built in tree like error type meant for gathering and reporting errors to users.
 category:       data,library
-homepage:       https://github.com/luntain/error-or#readme
+homepage:       https://github.com/luntain/error-or-bundle/blob/master/error-or#readme
 author:         Kamil Dworakowski
 maintainer:     kamil@dworakowski.name
 copyright:      2020 Kamil Dworakowski

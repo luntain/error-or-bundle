@@ -1,8 +1,8 @@
 name:                inbox
-version:             0.1.0.0
+version:             0.1.0
 synopsis:            Inbox for asychronous messages
-description:         Facilitates testing of asynchronous code
-homepage:            https://github.com/luntain/inbox#readme
+description:         Facilitates testing of asynchronous behavior
+homepage:            https://github.com/luntain/error-or-bundle/blob/master/inbox#readme
 license:             BSD3
 author:              Kamil Dworakowski
 maintainer:          kamil@dworakowski.name

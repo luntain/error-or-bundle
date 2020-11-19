@@ -4,14 +4,14 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0be9b08a5381fa2e2f77e73e4675e8c3e4db0c56b6bf60cfff856631de2ee534
+-- hash: 1949dd5e533e49fab34cb1d90c7b674c224d7c39680b2470e9565607da63b7a9
 
 name:           error-or-utils
-version:        0.1.1.0
+version:        0.1.1
 synopsis:       Utilities using ErrorOr datatype
 description:    Builds on the error type defined in the error-or package
 category:       data,library,testing
-homepage:       https://github.com/luntain/error-or-utils#readme
+homepage:       https://github.com/luntain/error-or-bundle/blob/master/error-or-utils#readme
 author:         Kamil Dworakowski
 maintainer:     kamil@dworakowski.name
 copyright:      2020 Kamil Dworakowski

@@ -3,7 +3,7 @@ version:             0.1.1.0
 synopsis:            Composable, hierarchical errors.
 description:         An Applicative Functor with error accumulation. Built in tree like error type
                      meant for gathering and reporting errors to users.
-homepage:            https://github.com/luntain/error-or#readme
+homepage:            https://github.com/luntain/error-or-bundle/blob/master/error-or#readme
 license:             BSD3
 author:              Kamil Dworakowski
 maintainer:          kamil@dworakowski.name
