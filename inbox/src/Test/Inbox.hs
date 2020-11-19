@@ -7,12 +7,13 @@ Module      : Text.Inbox
 
 Facilitates testing of asynchronouse code.
 
-Say you have a server that accepts incoming messages and produces
-responses asynchronously. To test it, write some code that puts any
-incoming message from the server into an `Inbox` using `putInbox`. The
-test can then send messages to the server and make assertions on the
-contents of the Inbox according to the expectations on the responses.
-
+== Example
+Assume you have a server that accepts incoming messages and
+produces responses asynchronously. In order to test it, open a
+connection to it, and process any incomming message from the server by
+adding it to the Inbox. Now that we know the messages are all arriving
+in the inbox, the test can send messages to the server and use
+`takeInbox` to wait for expected responses.
 -}
 module Test.Inbox (
 
@@ -47,7 +48,7 @@ import Control.Exception
 import Data.Time
 
 
--- | An entity holding a number of messages of type `a`
+-- | An entity holding a number of messages of type `a`.
 data Inbox a =
   Inbox (IORef (MessagesAndObservers a))
 
@@ -59,11 +60,11 @@ data MessagesAndObservers a = MessagesAndObservers {
 type Observer = MVar ()
 type Observers = [Observer]
 
--- | Create an empty Inbox
+-- | Create an empty Inbox.
 newInbox :: IO (Inbox a)
 newInbox = Inbox `fmap` newIORef (MessagesAndObservers [] [])
 
--- | Add a message to the Inbox
+-- | Add a message to the Inbox.
 putInbox :: forall m a . MonadIO m => Inbox a -> a -> m ()
 putInbox (Inbox r) newmsg = do
   liftIO $ mask_ $ do
@@ -73,7 +74,7 @@ putInbox (Inbox r) newmsg = do
     f :: MessagesAndObservers a -> (MessagesAndObservers a, [MVar ()])
     f MessagesAndObservers {..} = (MessagesAndObservers (newmsg:messages) [], observers)
 
--- | `takeInbox'` with a timeout of 3s
+-- | 'takeInbox'' with a timeout of 3s
 takeInbox :: (MonadIO m, Show a) => Inbox a -> Filter a b -> m b
 takeInbox = takeInbox' 3
 
@@ -125,9 +126,11 @@ takeInbox' sec t@(Inbox r) filter@(Filter text f) = do
               (x:rest, res)
           Just found -> (xs, Just found)
 
--- | It is a selector/matcher with a name. The name provides for better error messages.
--- Specifies what message to pick from the `Inbox` and how to transform it. See `predicate`
--- for a `Filter a a` that selects an element and does not apply any transformation.
+-- | It is a selector\/matcher/extractor with a name. It specifies
+-- what message to pick from the `Inbox` and how to transform it. The
+-- name provides for a better error messages. See `predicate` for a
+-- 'Filter' 'a' 'a' that selects an element and does not apply any
+-- transformation.
 data Filter a b = Filter T.Text (a -> Maybe b)
 
 instance Cat.Category Filter where
@@ -156,7 +159,7 @@ expectEmpty (Inbox r) = do
     [] -> pure (pure ())
     _ -> return . tag "Unconsumed messages" . sequenceA_ . map (err . T.pack . show) $ xs
 
--- | Validate that the filter does not match anything in the Inbox
+-- | Validate that the filter does not match anything in the Inbox.
 expectEmpty' :: (Show a, MonadIO m) => Inbox a -> Filter a b -> m ()
 expectEmpty' (Inbox r) (Filter name p) = do
   elems <- liftIO (filter (isJust.p) . messages <$> readIORef r)

@@ -30,7 +30,7 @@ import qualified Data.Time
 import Data.Bifunctor (Bifunctor(first))
 
 -- | It remembers the offset from system time and keeps a list of
--- sleeping threads (threads in threadDelay call)
+-- sleeping threads (threads in 'threadDelay'' call)
 data TimeEnv
   = TimeEnv
       { offset :: TVar NominalDiffTime,
@@ -38,8 +38,11 @@ data TimeEnv
       }
 
 -- | Create the simulated time env from the given time start point. For example
+--
+-- @
 -- timeEnv <- create (fromGregorian 2000 1 1) 0
 -- getSimulatedTime timeEnv
+-- @
 create :: UTCTime -> IO TimeEnv
 create epoch = do
   now <- Data.Time.getCurrentTime
@@ -54,7 +57,7 @@ getSimulatedTime t = do
 
 -- | Wake up due sleeping threads, based on TimeEnv. This happens on
 -- its own, but this call can quicken things up. Under the hood it is
--- just `advance tenv 0`
+-- just @advance tenv 0@
 triggerEvents :: TimeEnv -> IO ()
 triggerEvents t = advance t 0
 
