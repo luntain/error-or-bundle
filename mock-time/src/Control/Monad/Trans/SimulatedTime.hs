@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RankNTypes #-}
@@ -7,6 +8,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE UnboxedTuples #-}
 {-# LANGUAGE UndecidableInstances #-}
+{-# LANGUAGE PolyKinds #-}
 
 -- | An implementation of `Control.Monad.Time.MonadTime` with a monad transformer.
 module Control.Monad.Trans.SimulatedTime
@@ -32,6 +34,10 @@ import Control.Monad.Zip (MonadZip)
 import qualified Data.Time
 import Control.Monad.IO.Unlift
 import Test.SimulatedTime
+
+#if __GLASGOW_HASKELL__ < 880
+import Control.Monad.Fail (MonadFail(..))
+#endif
 
 -- | A newtype wrapper over `ReaderT` `TimeEnv`
 newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv m a}

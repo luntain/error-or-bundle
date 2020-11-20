@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# language OverloadedStrings #-}
 import Control.Concurrent (forkIO)
@@ -12,6 +13,9 @@ import qualified Test.SimulatedTime as SimTime
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
+#if __GLASGOW_HASKELL__ < 880
+import Data.Semigroup
+#endif
 
 main :: IO ()
 main =

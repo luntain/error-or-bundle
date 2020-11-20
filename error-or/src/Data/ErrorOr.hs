@@ -40,6 +40,7 @@ import qualified Data.Text as T
 import GHC.IO.Exception (IOException)
 #if __GLASGOW_HASKELL__ < 880
 import Prelude hiding (fail)
+import Data.Semigroup
 import Control.Monad.Fail (MonadFail(..))
 #endif
 

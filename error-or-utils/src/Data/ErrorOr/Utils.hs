@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE FunctionalDependencies #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
@@ -12,6 +13,11 @@ import qualified Data.List as List
 import qualified Data.Text as T
 import qualified Data.Char
 
+#if __GLASGOW_HASKELL__ < 880
+import Prelude hiding (fail)
+import Data.Semigroup
+import Control.Monad.Fail (MonadFail(..))
+#endif
 
 -- | A class used to implement `lookup` and `lookupIn`.
 class OverloadedLookup t k v | t -> k, t -> v where overloadedLookup :: k -> t -> Maybe v

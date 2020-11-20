@@ -1,3 +1,4 @@
+{-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
@@ -47,6 +48,10 @@ import Control.Monad (forM_)
 import Control.Exception
 import Data.Time
 
+#if __GLASGOW_HASKELL__ < 880
+import Data.Semigroup
+#endif
+
 
 -- | An entity holding a number of messages of type `a`.
 data Inbox a =
@@ -83,7 +88,9 @@ takeInbox = takeInbox' 3
 takeInbox' ::
   forall m a b.
   (MonadIO m, Show a) =>
+#if __GLASGOW_HASKELL__ >= 880
   -- | timeout in seconds
+#endif
   Float ->
   Inbox a ->
   Filter a b ->

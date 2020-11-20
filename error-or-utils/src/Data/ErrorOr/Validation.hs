@@ -1,3 +1,4 @@
+{-# Language CPP #-}
 {-# Language OverloadedStrings #-}
 -- | Utilities for data validation
 module Data.ErrorOr.Validation
@@ -18,6 +19,12 @@ where
 import Data.ErrorOr
 import qualified Data.Text as T
 import Data.Foldable (sequenceA_)
+
+#if __GLASGOW_HASKELL__ < 880
+import Prelude hiding (fail)
+import Data.Semigroup
+import Control.Monad.Fail (MonadFail(..))
+#endif
 
 -- <> is infixr 6 :|, which forces parentheses around >! etc, but if I increase
 -- priority on >! above 6, it will break relation to the arithmetic operators
@@ -49,7 +56,9 @@ a /=! b = if a/=b then pure () else binaryErr a "is equal to" b
 -- | Checks the difference of the numbers is less than ratio times
 --   the average of the two numbers.
 approxEqual :: (RealFrac a, Show a) =>
+#if __GLASGOW_HASKELL__ >= 880
   -- | ratio
+#endif
   Double
   -> a
   -> a
