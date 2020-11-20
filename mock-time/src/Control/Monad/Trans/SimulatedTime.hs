@@ -60,7 +60,7 @@ newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv
       -- MonadUnliftIO, -- gives an incomprehensible typing error
       MonadResource,
       MonadZip
-#if __GLASGOW_HASKELL__ >= 822
+#if MIN_VERSION_GLASGOW_HASKELL(8,2,0,0)
       , PrimMonad
 #endif
     )
@@ -124,7 +124,7 @@ newtype RealTimeT m a = RealTimeT {runRealTimeT :: m a}
       MonadFix,
       MonadResource,
       MonadZip
-#if __GLASGOW_HASKELL__ >= 822
+#if MIN_VERSION_GLASGOW_HASKELL(8,2,0,0)
       , PrimMonad
 #endif
     )
