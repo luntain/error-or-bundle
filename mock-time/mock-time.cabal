@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: aea8c5b79eeeb252ca0ef6d4f6e5e888672b973265e920222b48f4fba28654bc
+-- hash: f70ad4f0d259256d4dd856fc4bce3eb41bb5f2766f36c5baf158d814f0f83acb
 
 name:           mock-time
 version:        0.1.0
@@ -51,7 +51,7 @@ test-suite my-test-suite
       Paths_mock_time
   hs-source-dirs:
       tests
-  ghc-options: -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-qn1 -Wall
+  ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall
   build-depends:
       QuickCheck
     , base >=4.7 && <5

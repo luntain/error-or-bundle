@@ -39,4 +39,4 @@ tests:
     - tasty-hunit
     - QuickCheck
     - inbox
-    ghc-options: -threaded -rtsopts -with-rtsopts=-N -with-rtsopts=-qn1 -Wall
+    ghc-options: -threaded -rtsopts -with-rtsopts=-N -Wall

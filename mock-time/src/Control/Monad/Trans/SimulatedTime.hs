@@ -59,8 +59,10 @@ newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv
       MonadFix,
       -- MonadUnliftIO, -- gives an incomprehensible typing error
       MonadResource,
-      MonadZip,
-      PrimMonad
+      MonadZip
+#if __GLASGOW_HASKELL__ >= 822
+      , PrimMonad
+#endif
     )
 
 -- | Run the reader
@@ -121,8 +123,10 @@ newtype RealTimeT m a = RealTimeT {runRealTimeT :: m a}
       MonadPlus,
       MonadFix,
       MonadResource,
-      MonadZip,
-      PrimMonad
+      MonadZip
+#if __GLASGOW_HASKELL__ >= 822
+      , PrimMonad
+#endif
     )
 
 instance MonadIO m => MonadTime (RealTimeT m) where
