@@ -9,8 +9,10 @@ author:              Kamil Dworakowski
 maintainer:          kamil@dworakowski.name
 copyright:           2020 Kamil Dworakowski
 category:            data,library
+
 extra-source-files:
 - README.md
+- changelog.md
 
 tested-with: GHC==8.0.1, GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
 

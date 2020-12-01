@@ -93,6 +93,8 @@ instance Exc.Exception PrettyErrAcc where
 -- need for 'tagIO' often comes with 'Data.ErrorOr.Utils.lookup' (from
 -- error-or-utils package) when used from IO, which is overloaded for
 -- MonadFail.
+--
+-- Since ver 0.1.1.0
 tagIO :: T.Text -> IO a -> IO a
 tagIO str action =
   (action

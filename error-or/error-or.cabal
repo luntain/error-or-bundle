@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1f6147e25798fbc3b9bfd502fce48eb39eadf8e2b4d160c40664b9c6e1db182b
+-- hash: 06c1fad6bdd82d63e1afd222435d09bd98950ec171c0650e08d3af410ad47f34
 
 name:           error-or
 version:        0.1.1.0
@@ -21,6 +21,7 @@ tested-with:    GHC==8.0.1, GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
 build-type:     Simple
 extra-source-files:
     README.md
+    changelog.md
 
 library
   exposed-modules:
