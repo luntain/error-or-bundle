@@ -54,6 +54,8 @@ pattern OK x <- ErrorOr (Right x)
 pattern Error :: ErrorAcc -> ErrorOr a
 pattern Error err <- ErrorOr (Left err)
 
+{-# COMPLETE OK, Error #-}
+
 data ErrorAcc
   = Message T.Text
   | List (Seq.Seq ErrorAcc)
