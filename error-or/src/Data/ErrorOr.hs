@@ -43,6 +43,7 @@ import Prelude hiding (fail)
 import Data.Semigroup
 import Control.Monad.Fail (MonadFail(..))
 #endif
+import Control.Monad.Except hiding (fail) -- it exports GHC.Base.fail (?!)
 
 -- | Use 'Applicative'\'s 'sequenceA' and 'sequenceA_' to compose 'ErrorOr's as opposed to 'Monad' derived functions like 'sequence'.
 newtype ErrorOr a = ErrorOr {errorOrToEither :: Either ErrorAcc a}
@@ -175,6 +176,14 @@ mapError _ ok = ok
 fromOK :: ErrorOr a -> a
 fromOK (OK a) = a
 fromOK (Error err) = error (T.unpack $ pretty 0 err)
+
+instance MonadError ErrorAcc ErrorOr where
+  -- | Usually it is more convenient to use `fail` than this method.
+  throwError err = ErrorOr (Left err)
+  catchError action handler =
+    case action of
+      OK a -> action
+      Error err -> handler err
 
 -- | Convert between functors that hold error info.
 class ErrorConv t s where

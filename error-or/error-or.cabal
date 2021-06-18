@@ -4,10 +4,10 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 92aaa36d0bc66d07884e22009595e7dc11ed89e187d8a44f37bc13a0cb537f0f
+-- hash: a5a9dca8cc38efb4c0155333eecb99a1edfdcb36222b9c1fd7cbb882a9d14b11
 
 name:           error-or
-version:        0.1.2.0
+version:        0.1.3.0
 synopsis:       Composable, hierarchical errors.
 description:    An Applicative Functor with error accumulation. Built in tree like error type meant for gathering and reporting errors to users.
 category:       data,library
@@ -33,5 +33,6 @@ library
   build-depends:
       base >=4.9 && <5
     , containers
+    , mtl
     , text
   default-language: Haskell2010

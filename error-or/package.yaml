@@ -1,5 +1,5 @@
 name:                error-or
-version:             0.1.2.0
+version:             0.1.3.0
 synopsis:            Composable, hierarchical errors.
 description:         An Applicative Functor with error accumulation. Built in tree like error type
                      meant for gathering and reporting errors to users.
@@ -20,6 +20,7 @@ dependencies:
   - base >= 4.9 && < 5 # Need base 4.9 due to Data.Semigroup and MonadFail
   - text
   - containers
+  - mtl
 
 library:
   source-dirs:      src
