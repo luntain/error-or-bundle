@@ -13,21 +13,21 @@
 -- | Provides composable and hierarchical errors, with pretty
 -- printing. The errors are accumulated in a tree like structure,
 -- 'ErrorAcc'. 'ErrorAcc' is disigned to be read by humans, via
--- 'pretty', not dispatched on by code. Using 'toE' to convert an
+-- 'prettyErrAcc', not dispatched on by code. Using 'toE' to convert an
 -- 'ErrorOr' to IO throws (in case it holds an error) a 'PrettyErrAcc'
 -- that uses 'pretty' in the show instance.
 module Data.ErrorOr
   ( ErrorOr(..),
-    err,
     tag,
     pattern Error,
     pattern OK,
     isOK,
     isError,
     fromOK,
+    failText,
     ErrorConv(..),
     ErrorAcc(..),
-    pretty,
+    prettyErrAcc,
     PrettyErrAcc (..),
     tagIO,
   )
@@ -44,6 +44,7 @@ import Data.Semigroup
 import Control.Monad.Fail (MonadFail(..))
 #endif
 import Control.Monad.Except hiding (fail) -- it exports GHC.Base.fail (?!)
+import Data.String
 
 -- | Use 'Applicative'\'s 'sequenceA' and 'sequenceA_' to compose 'ErrorOr's as opposed to 'Monad' derived functions like 'sequence'.
 newtype ErrorOr a = ErrorOr {errorOrToEither :: Either ErrorAcc a}
@@ -53,25 +54,28 @@ pattern OK :: a -> ErrorOr a
 pattern OK x <- ErrorOr (Right x)
 
 pattern Error :: ErrorAcc -> ErrorOr a
-pattern Error err <- ErrorOr (Left err)
+pattern Error err = ErrorOr (Left err)
 
 {-# COMPLETE OK, Error #-}
 
 data ErrorAcc
-  = Message T.Text
-  | List (Seq.Seq ErrorAcc)
-  | Tag T.Text ErrorAcc
+  = ErrMessage T.Text
+  | ErrList (Seq.Seq ErrorAcc)
+  | ErrTag T.Text ErrorAcc
   deriving (Show, Read, Eq, Ord)
 
--- | Produce an error.
-err :: T.Text -> ErrorOr a
-err = ErrorOr . Left . Message
+instance IsString ErrorAcc where
+  fromString = ErrMessage . T.pack
+
+-- | Produce an error from `Text`. You can also use `fail`, which takes a `String`.
+failText :: T.Text -> ErrorOr a
+failText = ErrorOr . Left . ErrMessage
 
 -- | Annotate the error with context information.
 tag :: T.Text -> ErrorOr a -> ErrorOr a
 tag str res
   | isOK res = res
-  | otherwise = mapError (Tag str) res
+  | otherwise = mapError (ErrTag str) res
 
 -- | A wrapper over 'ErrorAcc' to provide human readable exceptions.
 -- (Exception class' displayException does not seem to be used by GHC)
@@ -79,7 +83,7 @@ tag str res
 newtype PrettyErrAcc = PrettyErrAcc {unPrettyErrAcc :: ErrorAcc}
 
 instance Show PrettyErrAcc where
-  show = T.unpack  . pretty 0 . unPrettyErrAcc
+  show = T.unpack  . prettyErrAcc 0 . unPrettyErrAcc
 
 instance Exc.Exception PrettyErrAcc where
 
@@ -102,25 +106,25 @@ tagIO :: T.Text -> IO a -> IO a
 tagIO str action =
   (action
      `Exc.catch` \(e :: IOException) ->
-         Exc.throwIO $ PrettyErrAcc $ Tag str (Message (T.pack $ show e)))
+         Exc.throwIO $ PrettyErrAcc $ ErrTag str (ErrMessage (T.pack $ show e)))
 
      `Exc.catch` \(e :: PrettyErrAcc) ->
-         Exc.throwIO $ PrettyErrAcc $ Tag str (unPrettyErrAcc e)
+         Exc.throwIO $ PrettyErrAcc $ ErrTag str (unPrettyErrAcc e)
 
 
 -- | Pretty print the error.
-pretty :: Int
+prettyErrAcc :: Int
   -- ^ Initial indent, usually 0
   -> ErrorAcc -> T.Text
-pretty indent (Message txt) = T.replicate indent " " <> txt
-pretty indent (List errs) = T.intercalate "\n" . map (pretty indent) . toList $ errs
-pretty indent (Tag str err) = T.intercalate "\n" [pretty indent (Message str), pretty (indent + 4) err]
+prettyErrAcc indent (ErrMessage txt) = T.replicate indent " " <> txt
+prettyErrAcc indent (ErrList errs) = T.intercalate "\n" . map (prettyErrAcc indent) . toList $ errs
+prettyErrAcc indent (ErrTag str err) = T.intercalate "\n" [prettyErrAcc indent (ErrMessage str), prettyErrAcc (indent + 4) err]
 
 instance Semigroup ErrorAcc where
-  List l1 <> List l2 = List (l1 <> l2)
-  List l1 <> other = List (l1 Seq.|> other)
-  other <> List l2 = List (other Seq.<| l2)
-  notList1 <> notList2 = List (Seq.fromList [notList1, notList2])
+  ErrList l1 <> ErrList l2 = ErrList (l1 <> l2)
+  ErrList l1 <> other = ErrList (l1 Seq.|> other)
+  other <> ErrList l2 = ErrList (other Seq.<| l2)
+  notList1 <> notList2 = ErrList (Seq.fromList [notList1, notList2])
 
 instance Applicative ErrorOr where
   pure x = ErrorOr (Right x)
@@ -159,7 +163,7 @@ instance Monad ErrorOr where
   ErrorOr either >>= f = ErrorOr (either >>= fmap errorOrToEither f)
 
 instance MonadFail ErrorOr where
-  fail = ErrorOr . Left . Message . T.pack
+  fail = ErrorOr . Left . ErrMessage . T.pack
 
 isOK :: ErrorOr a -> Bool
 isOK (OK _) = True
@@ -175,7 +179,7 @@ mapError _ ok = ok
 -- | A partial function, like 'fromRight'.
 fromOK :: ErrorOr a -> a
 fromOK (OK a) = a
-fromOK (Error err) = error (T.unpack $ pretty 0 err)
+fromOK (Error err) = error (T.unpack $ prettyErrAcc 0 err)
 
 instance MonadError ErrorAcc ErrorOr where
   -- | Usually it is more convenient to use `fail` than this method.

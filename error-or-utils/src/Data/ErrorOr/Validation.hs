@@ -66,7 +66,7 @@ approxEqual :: (RealFrac a, Show a) =>
 approxEqual ratio x y =
   if abs (realToFrac x - realToFrac y) <= abs (ratio * avg)
     then pure ()
-    else err ("The numbers are too far apart: " <> T.pack (show x) <> " " <> T.pack (show y))
+    else fail ("The numbers are too far apart: " ++ show x ++ " " ++ show y)
   where
     avg :: Double
     avg = realToFrac (x + y) / 2
@@ -76,10 +76,10 @@ binaryErr a label b = fail ((show a) ++ " " ++ T.unpack label ++ " " ++ show b)
 
 ensureIsNothing :: Show a => Maybe a -> ErrorOr ()
 ensureIsNothing Nothing = pure ()
-ensureIsNothing x = err ("Expected Nothing, but got " <> T.pack (show x))
+ensureIsNothing x = fail ("Expected Nothing, but got " <> show x)
 
 ensureIsJust :: Maybe a -> ErrorOr ()
-ensureIsJust Nothing = err ("Expected Just, but got Nothing")
+ensureIsJust Nothing = fail "Expected Just, but got Nothing"
 ensureIsJust (Just _) = pure ()
 
 -- | It annotates a failure with the element's show result.
@@ -90,4 +90,4 @@ ensureAll p = sequenceA_ . map p'
                   else pure ()
 
 ensure :: T.Text -> Bool -> ErrorOr ()
-ensure label condition = if condition then pure () else err label
+ensure label condition = if condition then pure () else failText label

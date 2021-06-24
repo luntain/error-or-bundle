@@ -1,5 +1,5 @@
 name:                inbox
-version:             0.1.0
+version:             0.2.0
 synopsis:            Inbox for asychronous messages
 description:         Facilitates testing of asynchronous behavior
 homepage:            https://github.com/luntain/error-or-bundle/blob/master/inbox#readme
@@ -17,7 +17,7 @@ dependencies:
   - base >= 4.7 && < 5
   - text
   - async
-  - error-or
+  - error-or >= 0.2.0.0
   - time
 
 library:

@@ -49,6 +49,8 @@ import Control.Exception
 import Data.Time
 
 #if __GLASGOW_HASKELL__ < 880
+import Prelude hiding (fail) -- out with the old, Monad.fail
+import Control.Monad.Fail (fail) -- in with the new, MonadFail.fail
 import Data.Semigroup
 #endif
 
@@ -164,7 +166,7 @@ expectEmpty (Inbox r) = do
   xs <- messages <$> readIORef r
   case xs of
     [] -> pure (pure ())
-    _ -> return . tag "Unconsumed messages" . sequenceA_ . map (err . T.pack . show) $ xs
+    _ -> return . tag "Unconsumed messages" . sequenceA_ . map (fail . show) $ xs
 
 -- | Validate that the filter does not match anything in the Inbox.
 expectEmpty' :: (Show a, MonadIO m) => Inbox a -> Filter a b -> m ()
@@ -175,4 +177,4 @@ expectEmpty' (Inbox r) (Filter name p) = do
       . toE
       . tag ("There are msgs matching " <> name)
       . sequenceA_
-      . map ((err :: T.Text -> ErrorOr ()) . T.pack . show) $ elems
+      . map (fail . show) $ elems

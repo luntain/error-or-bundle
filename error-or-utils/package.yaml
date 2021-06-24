@@ -1,5 +1,5 @@
 name:                error-or-utils
-version:             0.1.1
+version:             0.2.0
 synopsis:            Utilities using ErrorOr datatype
 description:         Builds on the error type defined in the error-or package
 homepage:            https://github.com/luntain/error-or-bundle/blob/master/error-or-utils#readme
@@ -15,7 +15,7 @@ tested-with: GHC==8.0.1, GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
 
 dependencies:
   - base >= 4.7 && < 5
-  - error-or
+  - error-or >= 0.2.0.0
   - text
   - containers
 
