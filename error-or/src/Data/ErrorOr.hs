@@ -203,3 +203,8 @@ instance ErrorConv ErrorOr IO where
 instance ErrorConv Maybe ErrorOr where
   toE Nothing = fail "Nothing"
   toE (Just a) = pure a
+
+-- | Convert from `Either e`, `Left` becomese error.
+instance Show e => ErrorConv (Either e) ErrorOr where
+  toE (Left err) = fail (show err)
+  toE (Right a) = pure a
