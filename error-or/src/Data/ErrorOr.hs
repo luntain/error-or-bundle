@@ -16,6 +16,8 @@
 -- 'prettyErrAcc', not dispatched on by code. Using 'toE' to convert an
 -- 'ErrorOr' to IO throws (in case it holds an error) a 'PrettyErrAcc'
 -- that uses 'pretty' in the show instance.
+--
+-- This works well for apps where you don't need to display errors in different languages.
 module Data.ErrorOr
   ( ErrorOr(..),
     tag,
@@ -89,28 +91,30 @@ instance Exc.Exception PrettyErrAcc where
 
 -- | Tag an exception with an annotation.
 --
--- It acts on two types of exceptions: `IOException` and
--- `PrettyErrAcc`. For `PrettyErrAcc` it is streightforward tagging.
--- For `IOException`, otoh, it converts the error message into Text
--- via String and turns it into `PrettyErrAcc` tagged with provided
--- adnotation.
---
--- This is rather a convenience function. Sometimes it is convenient
--- to @fail "msg"@ in IO, and tag it higher up with some context. The
--- need for 'tagIO' often comes with 'Data.ErrorOr.Utils.lookup' (from
--- error-or-utils package) when used from IO, which is overloaded for
--- MonadFail.
+-- It ignores asynchronous exceptions and has special logic for
+-- `PrettyErrAcc` for better composition. For `SomeException`, it
+-- converts the error message into Text via String and turns it into
+-- `PrettyErrAcc` tagged with provided adnotation. For `PrettyErrAcc`
+-- it is streightforward tagging.
 --
 -- Since ver 0.1.1.0
 tagIO :: T.Text -> IO a -> IO a
-tagIO str action =
-  (action
-     `Exc.catch` \(e :: IOException) ->
-         Exc.throwIO $ PrettyErrAcc $ ErrTag str (ErrMessage (T.pack $ show e)))
-
-     `Exc.catch` \(e :: PrettyErrAcc) ->
-         Exc.throwIO $ PrettyErrAcc $ ErrTag str (unPrettyErrAcc e)
-
+tagIO ctx action =
+  action
+     `Exc.catch` \(e :: Exc.SomeException) ->
+         case Exc.fromException e of
+           Just (pretty :: PrettyErrAcc) ->
+             Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (unPrettyErrAcc pretty)
+           Nothing ->
+            if isAsyncException e
+              then Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (ErrMessage (T.pack $ show e))
+              else Exc.throwIO e
+  where
+    isAsyncException :: Exc.SomeException -> Bool
+    isAsyncException e =
+      case Exc.fromException e of
+          Just (Exc.SomeAsyncException _) -> True
+          Nothing -> False
 
 -- | Pretty print the error.
 prettyErrAcc :: Int
