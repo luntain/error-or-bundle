@@ -45,7 +45,7 @@ import Prelude hiding (fail)
 import Data.Semigroup
 import Control.Monad.Fail (MonadFail(..))
 #endif
-import Control.Monad.Except hiding (fail) -- it exports GHC.Base.fail (?!)
+import Control.Monad.Except (MonadError, throwError, catchError) -- it exports GHC.Base.fail (?!)
 import Data.String
 
 -- | Use 'Applicative'\'s 'sequenceA' and 'sequenceA_' to compose 'ErrorOr's as opposed to 'Monad' derived functions like 'sequence'.
