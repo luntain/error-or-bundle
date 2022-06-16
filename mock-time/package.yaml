@@ -26,7 +26,7 @@ dependencies:
 
 library:
   source-dirs: src
-  ghc-options: -Wall -fno-warn-name-shadowing -fno-warn-orphans -Werror
+  ghc-options: -Wall -fno-warn-name-shadowing -fno-warn-orphans
 
 tests:
   my-test-suite:
