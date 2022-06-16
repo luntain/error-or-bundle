@@ -1,6 +1,6 @@
 # error-or
 
-[![Build Status](https://travis-ci.com/luntain/error-or.svg?branch=master)](https://travis-ci.com/luntain/error-or)
+[![Hackage](https://img.shields.io/hackage/v/error-or.svg)](https://hackage.haskell.org/package/error-or)
 
 Composable, hierarchical errors.
 
