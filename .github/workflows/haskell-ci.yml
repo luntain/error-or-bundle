@@ -48,9 +48,9 @@ jobs:
             compilerVersion: 8.8.3
             setup-method: hvr-ppa
             allow-failure: false
-          - compiler: ghc-8.8.1
+          - compiler: ghc-8.6.5
             compilerKind: ghc
-            compilerVersion: 8.8.1
+            compilerVersion: 8.6.5
             setup-method: hvr-ppa
             allow-failure: false
           - compiler: ghc-8.2.2
