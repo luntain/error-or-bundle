@@ -48,7 +48,7 @@ import Control.Monad (forM_)
 import Control.Exception
 import Data.Time
 
-#if __GLASGOW_HASKELL__ < 880
+#if __GLASGOW_HASKELL__ < 808
 import Prelude hiding (fail) -- out with the old, Monad.fail
 import Control.Monad.Fail (fail) -- in with the new, MonadFail.fail
 import Data.Semigroup
@@ -90,7 +90,7 @@ takeInbox = takeInbox' 3
 takeInbox' ::
   forall m a b.
   (MonadIO m, Show a) =>
-#if __GLASGOW_HASKELL__ >= 880
+#if __GLASGOW_HASKELL__ >= 808
   -- | timeout in seconds
 #endif
   Float ->
@@ -110,7 +110,7 @@ takeInbox' sec t@(Inbox r) filter@(Filter text f) = do
     Just msg -> return msg
     Nothing -> do
       time0 <- liftIO getCurrentTime
-      res <- liftIO $ race (threadDelay (round $ sec * 10^6)) (readMVar observer)
+      res <- liftIO $ race (threadDelay (round $ sec * 10^(6::Int))) (readMVar observer)
       case res of
         Right () -> do
           -- something changed in the Inbox, let's retest the filter

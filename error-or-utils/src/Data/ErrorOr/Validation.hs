@@ -20,7 +20,7 @@ import Data.ErrorOr
 import qualified Data.Text as T
 import Data.Foldable (sequenceA_)
 
-#if __GLASGOW_HASKELL__ < 880
+#if __GLASGOW_HASKELL__ < 808
 import Prelude hiding (fail)
 import Data.Semigroup
 import Control.Monad.Fail (MonadFail(..))
@@ -56,7 +56,7 @@ a /=! b = if a/=b then pure () else binaryErr a "is equal to" b
 -- | Checks the difference of the numbers is less than ratio times
 --   the average of the two numbers.
 approxEqual :: (RealFrac a, Show a) =>
-#if __GLASGOW_HASKELL__ >= 880
+#if __GLASGOW_HASKELL__ >= 808
   -- | ratio
 #endif
   Double

@@ -1,6 +1,7 @@
 {-# LANGUAGE CPP #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# language OverloadedStrings #-}
+{-# language TypeApplications #-}
 import Control.Concurrent (forkIO)
 import Control.Monad
 import Data.ErrorOr
@@ -13,7 +14,7 @@ import qualified Test.SimulatedTime as SimTime
 import Test.Tasty
 import Test.Tasty.HUnit
 import Test.Tasty.QuickCheck
-#if __GLASGOW_HASKELL__ < 880
+#if __GLASGOW_HASKELL__ < 808
 import Data.Semigroup
 #endif
 
@@ -24,7 +25,7 @@ main =
       "tests"
       [ testCase "put" $ do
           tenv <- SimTime.create (UTCTime (fromGregorian 2015 7 18) 0)
-          box <- newInbox
+          box <- newInbox @String
           _ <- forkIO (SimTime.threadDelay' tenv 50000 >> putInbox box "50ms")
           _ <- forkIO (SimTime.threadDelay' tenv 500000 >> putInbox box ".5s")
           _ <- forkIO (SimTime.threadDelay' tenv 1000000 >> putInbox box "1s")

@@ -39,8 +39,7 @@ import qualified Control.Exception as Exc
 import Data.Foldable (toList)
 import qualified Data.Sequence as Seq
 import qualified Data.Text as T
-import GHC.IO.Exception (IOException)
-#if __GLASGOW_HASKELL__ < 880
+#if __GLASGOW_HASKELL__ < 808
 import Prelude hiding (fail)
 import Data.Semigroup
 import Control.Monad.Fail (MonadFail(..))
@@ -144,7 +143,7 @@ instance Semigroup a => Semigroup (ErrorOr a) where
   _ <> r = r
 
 instance (
-#if __GLASGOW_HASKELL__ < 880
+#if __GLASGOW_HASKELL__ < 808
     Semigroup (ErrorOr a),
 #endif
     Monoid a) => Monoid (ErrorOr a) where
@@ -190,7 +189,7 @@ instance MonadError ErrorAcc ErrorOr where
   throwError err = ErrorOr (Left err)
   catchError action handler =
     case action of
-      OK a -> action
+      OK _ -> action
       Error err -> handler err
 
 -- | Convert between functors that hold error info.

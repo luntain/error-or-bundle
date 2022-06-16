@@ -13,7 +13,7 @@ import qualified Data.List as List
 import qualified Data.Text as T
 import qualified Data.Char
 
-#if __GLASGOW_HASKELL__ < 880
+#if __GLASGOW_HASKELL__ < 808
 import Prelude hiding (fail)
 import Data.Semigroup
 import Control.Monad.Fail (MonadFail(..))

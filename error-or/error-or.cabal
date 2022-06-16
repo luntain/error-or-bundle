@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: b491cc72be2df57b2360957ec79bc6e8d9b7d5e8e437fcc9174600d492fcd4b4
+-- hash: 946d447d8da061f6aa65014212df2ea31c068f5fd7627ccc12b08a2edc846b9f
 
 name:           error-or
 version:        0.2.0.0
@@ -31,6 +31,7 @@ library
       Paths_error_or
   hs-source-dirs:
       src
+  ghc-options: -Wall -fno-warn-name-shadowing -Werror
   build-depends:
       base >=4.9 && <5
     , containers

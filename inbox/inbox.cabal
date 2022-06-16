@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 0ac923d71c1da772bbdfa20bc264b7bba8941101637cf5af6ba85eda130bc10b
+-- hash: 5ea95d6572adf3da8eff7fe95b6179f25c2024d5c2b36b3812420516ce0db5be
 
 name:           inbox
 version:        0.2.0
@@ -30,6 +30,7 @@ library
       Paths_inbox
   hs-source-dirs:
       src
+  ghc-options: -Wall -fno-warn-name-shadowing -Werror
   build-depends:
       async
     , base >=4.7 && <5

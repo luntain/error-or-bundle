@@ -7,7 +7,6 @@
 -- This is only and instance for IO, for instances for monad transformers see
 -- 'Control.Monad.Trans.SimulatedTime'.
 module Control.Monad.Time.DefaultInstance (
-module Control.Monad.Time.DefaultInstance,
 module Control.Monad.Time) where
 
 import Control.Monad.Time

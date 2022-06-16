@@ -35,7 +35,7 @@ import qualified Data.Time
 import Control.Monad.IO.Unlift
 import Test.SimulatedTime
 
-#if __GLASGOW_HASKELL__ < 880
+#if __GLASGOW_HASKELL__ < 808
 import Control.Monad.Fail (MonadFail(..))
 #endif
 
