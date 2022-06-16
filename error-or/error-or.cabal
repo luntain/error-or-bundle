@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 22e11491d37fcb86d527cdea6ec796a31535ad8d6973fe494ab5e92973fccc8b
+-- hash: 1804df49cf95e9ab28c03e4e5eae01a80a6769e55c02d01fa9c11dcc4c907031
 
 name:           error-or
 version:        0.2.0.0
@@ -18,7 +18,7 @@ copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
 tested-with:
-    GHC==8.0.1, GHC==8.2.2, GHC==8.8.1, GHC==8.8.3, GHC==8.10.2
+    GHC ==8.0.1 || ==8.2.2 || ==8.8.1 || ==8.8.3 || ==8.10.2 || ==9.2.1
 build-type:     Simple
 extra-source-files:
     README.md
