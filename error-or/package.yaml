@@ -1,5 +1,5 @@
 name:                error-or
-version:             0.2.0.0
+version:             0.3.0
 synopsis:            Composable, hierarchical errors.
 description:         An Applicative Functor with error accumulation. Built in tree like error type
                      meant for gathering and reporting errors to users.
