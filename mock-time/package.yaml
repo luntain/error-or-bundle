@@ -18,6 +18,7 @@ dependencies:
   - time
   - stm
   - mtl
+  - transformers
   - exceptions
   - resourcet
   - primitive

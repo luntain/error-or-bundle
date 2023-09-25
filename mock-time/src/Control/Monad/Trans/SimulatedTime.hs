@@ -25,10 +25,14 @@ import qualified Control.Concurrent
 import Control.Monad.Catch (MonadCatch, MonadMask(..), MonadThrow)
 import Control.Monad.Cont (MonadCont)
 import Control.Monad.Except (MonadError)
+import Control.Monad (MonadPlus)
+import Control.Monad.Fix (MonadFix)
 import Control.Monad.Primitive (PrimMonad)
 import Control.Monad.RWS (MonadState, MonadWriter)
-import Control.Monad.Reader
+import Control.Monad.Reader (MonadReader(..))
 import Control.Monad.Time
+import Control.Monad.Trans (MonadTrans(lift))
+import Control.Monad.Trans.Reader (ReaderT(..), mapReaderT)
 import Control.Monad.Trans.Resource (MonadResource)
 import Control.Monad.Zip (MonadZip)
 import qualified Data.Time
