@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.35.1.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: d0cb29654dce7d7ec871628422b33fb121f5de4ea272dd4b49629b4258793045
+-- hash: 2e52003aaed0cec5ae13e8da1afeb07e47ef535bbf9245b4f3be4d7f1e0a99df
 
 name:           mock-time
 version:        0.1.0
@@ -43,6 +43,7 @@ library
     , resourcet
     , stm
     , time
+    , transformers
     , unliftio-core
   default-language: Haskell2010
 
@@ -70,5 +71,6 @@ test-suite my-test-suite
     , tasty-hunit
     , tasty-quickcheck
     , time
+    , transformers
     , unliftio-core
   default-language: Haskell2010
