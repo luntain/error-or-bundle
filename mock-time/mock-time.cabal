@@ -1,13 +1,11 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.35.1.
+-- This file has been generated from package.yaml by hpack version 0.37.0.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: 2e52003aaed0cec5ae13e8da1afeb07e47ef535bbf9245b4f3be4d7f1e0a99df
 
 name:           mock-time
-version:        0.1.0
+version:        0.1.1
 synopsis:       Mock time in tests
 description:    Allows to mock out Data.Time.getCurrentTime and Control.Concrurent.threadDelay
 category:       Test
@@ -17,11 +15,12 @@ maintainer:     kamil@dworakowski.name
 copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
+build-type:     Simple
 tested-with:
     GHC == 8.0.2 || ==8.2.2 || ==8.6.5 || ==8.8.3 || ==8.10.2 || ==9.0.1 || ==9.2.1 || ==9.4.8 || ==9.6.6
-build-type:     Simple
 extra-source-files:
     README.md
+    changelog.md
 
 library
   exposed-modules:
