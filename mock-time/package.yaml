@@ -1,12 +1,12 @@
 name:                mock-time
-version:             0.1.1
+version:             0.2.0
 synopsis:            Mock time in tests
-description:         Allows to mock out Data.Time.getCurrentTime and Control.Concrurent.threadDelay
+description:         Control time in tests
 homepage:            https://github.com/luntain/error-or-bundle/blob/master/mock-time#readme
 license:             BSD3
 maintainer:          kamil@dworakowski.name
 author:              Kamil Dworakowski
-copyright:           2020 Kamil Dworakowski
+copyright:           2025 Kamil Dworakowski
 category:            Test
 extra-source-files:
 - README.md

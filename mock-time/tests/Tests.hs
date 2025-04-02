@@ -23,7 +23,7 @@ main =
   defaultMain $
     testGroup
       "tests"
-      [ testCase "put" $ do
+      [ testCase "threadDelay' without time travel" $ do
           tenv <- SimTime.create (UTCTime (fromGregorian 2015 7 18) 0)
           box <- newInbox @String
           _ <- forkIO (SimTime.threadDelay' tenv 50000 >> putInbox box "50ms")
@@ -33,10 +33,10 @@ main =
           takeInbox box (equalTo "50ms")
           t1 <- Data.Time.getCurrentTime
           let elapsed = diffUTCTime t1 t0
-          toE $ (elapsed <! 0.070) <> (elapsed >! 0.049),
+          toE $ (0.049 <! elapsed) <> (elapsed <! 0.070)
 
-        -- takes around 5.5s
-        testProperty "advance" $ do
+        -- the property runs 100 tests and takes around 5.5s
+      , testProperty "advance" $ do
           let sorted :: [Int] =
                 [ 50000,
                   10^6,

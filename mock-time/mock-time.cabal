@@ -5,14 +5,14 @@ cabal-version: 1.12
 -- see: https://github.com/sol/hpack
 
 name:           mock-time
-version:        0.1.1
+version:        0.2.0
 synopsis:       Mock time in tests
-description:    Allows to mock out Data.Time.getCurrentTime and Control.Concrurent.threadDelay
+description:    Control time in tests
 category:       Test
 homepage:       https://github.com/luntain/error-or-bundle/blob/master/mock-time#readme
 author:         Kamil Dworakowski
 maintainer:     kamil@dworakowski.name
-copyright:      2020 Kamil Dworakowski
+copyright:      2025 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
 build-type:     Simple
@@ -25,7 +25,6 @@ extra-source-files:
 library
   exposed-modules:
       Control.Monad.Time
-      Control.Monad.Time.DefaultInstance
       Control.Monad.Trans.SimulatedTime
       Test.SimulatedTime
   other-modules:
