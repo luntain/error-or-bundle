@@ -24,7 +24,6 @@ dependencies:
   - resourcet
   - primitive
   - unliftio-core
-  - error-or
 
 library:
   source-dirs: src
@@ -36,6 +35,7 @@ tests:
     main: Tests.hs
     dependencies:
     - mock-time
+    - error-or
     - error-or-utils
     - tasty
     - tasty-quickcheck

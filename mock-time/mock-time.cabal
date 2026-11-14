@@ -1,6 +1,6 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.3.
+-- This file has been generated from package.yaml by hpack version 0.39.6.
 --
 -- see: https://github.com/sol/hpack
 
@@ -34,7 +34,6 @@ library
   ghc-options: -Wall -fno-warn-name-shadowing -fno-warn-orphans
   build-depends:
       base >=4.7 && <5
-    , error-or
     , exceptions
     , mtl
     , primitive
