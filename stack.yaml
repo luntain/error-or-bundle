@@ -1,4 +1,4 @@
-resolver: lts-21.25
+resolver: lts-24.46
 packages:
 - error-or
 - error-or-utils

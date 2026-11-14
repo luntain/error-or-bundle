@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.38.3.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 1014114e16550ae161aba0d42fa52ba499e38ea7d2307cb4dba5bba4d9c3c8c4
+-- hash: 0cde555cb07ef6445f04fc353b8bc9c5ab45d94bdef1aff47b40924b8176dfbd
 
 name:           error-or-utils
 version:        0.2.0
@@ -18,7 +18,7 @@ copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
 tested-with:
-    GHC == 8.0.2 || ==8.2.2 || ==8.6.5 || ==8.8.3 || ==8.10.2 || ==9.0.1 || ==9.2.1 || ==9.4.8 || ==9.6.6
+    GHC == 8.0.2 || ==8.2.2 || ==8.6.5 || ==8.8.3 || ==8.10.2 || ==9.0.1 || ==9.2.1 || ==9.4.8 || ==9.6.6 || ==9.8.4 || ==9.10.3 || ==9.12.2
 build-type:     Simple
 extra-source-files:
     README.md

@@ -1,3 +1,7 @@
+## 0.3.1 (2026-11-14)
+  * Fix `tagIO`: it now tags synchronous exceptions and lets asynchronous ones
+    pass unchanged. In 0.3.0 it did the opposite, despite what the changelog said.
+  * `prettyErrAcc` indents every line of a multi-line message, not only the first
 ## 0.3.0 (2022-06-16)
   * tagIO now wraps any non async exception, used to wrap only `IOExceptions` and
     user errors (from `error` function)

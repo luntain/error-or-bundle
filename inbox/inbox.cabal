@@ -1,10 +1,10 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.34.4.
+-- This file has been generated from package.yaml by hpack version 0.38.3.
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 825798efafd5498cb660cf106bbdc2cf15ac2fd86616440b1c076549f01752cb
+-- hash: b523382b1a00a09e276106c80b119d5a96552f271d5b77478277c3ad78e1a075
 
 name:           inbox
 version:        0.2.0
@@ -18,7 +18,7 @@ copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
 tested-with:
-    GHC == 8.0.2 || ==8.2.2 || ==8.6.5 || ==8.8.3 || ==8.10.2 || ==9.0.1 || ==9.2.1 || ==9.4.8 || ==9.6.6
+    GHC == 8.0.2 || ==8.2.2 || ==8.6.5 || ==8.8.3 || ==8.10.2 || ==9.0.1 || ==9.2.1 || ==9.4.8 || ==9.6.6 || ==9.8.4 || ==9.10.3 || ==9.12.2
 build-type:     Simple
 extra-source-files:
     README.md
