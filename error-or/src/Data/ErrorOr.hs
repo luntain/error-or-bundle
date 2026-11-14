@@ -90,11 +90,11 @@ instance Exc.Exception PrettyErrAcc where
 
 -- | Tag an exception with an annotation.
 --
--- It ignores asynchronous exceptions and has special logic for
+-- It lets async exceptions pass unchanged and has special logic for
 -- `PrettyErrAcc` for better composition. For `SomeException`, it
 -- converts the error message into Text via String and turns it into
 -- `PrettyErrAcc` tagged with provided adnotation. For `PrettyErrAcc`
--- it is streightforward tagging.
+-- it is a streightforward tagging.
 --
 -- Since ver 0.1.1.0
 tagIO :: T.Text -> IO a -> IO a
@@ -106,8 +106,8 @@ tagIO ctx action =
              Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (unPrettyErrAcc pretty)
            Nothing ->
             if isAsyncException e
-              then Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (ErrMessage (T.pack $ show e))
               else Exc.throwIO e
+              then Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (ErrMessage (T.pack $ show e))
   where
     isAsyncException :: Exc.SomeException -> Bool
     isAsyncException e =
