@@ -12,10 +12,10 @@
 
 -- | Provides composable and hierarchical errors, with pretty
 -- printing. The errors are accumulated in a tree like structure,
--- 'ErrorAcc'. 'ErrorAcc' is disigned to be read by humans, via
+-- 'ErrorAcc'. 'ErrorAcc' is designed to be read by humans, via
 -- 'prettyErrAcc', not dispatched on by code. Using 'toE' to convert an
 -- 'ErrorOr' to IO throws (in case it holds an error) a 'PrettyErrAcc'
--- that uses 'pretty' in the show instance.
+-- that uses 'prettyErrAcc' in the show instance.
 --
 -- This works well for apps where you don't need to display errors in different languages.
 module Data.ErrorOr
@@ -93,10 +93,10 @@ instance Exc.Exception PrettyErrAcc where
 -- It lets async exceptions pass unchanged and has special logic for
 -- `PrettyErrAcc` for better composition. For `SomeException`, it
 -- converts the error message into Text via String and turns it into
--- `PrettyErrAcc` tagged with provided adnotation. For `PrettyErrAcc`
--- it is a streightforward tagging.
+-- `PrettyErrAcc` tagged with the provided annotation. For `PrettyErrAcc`
+-- it is straightforward tagging.
 --
--- Since ver 0.1.1.0
+-- @since 0.1.1.0
 tagIO :: T.Text -> IO a -> IO a
 tagIO ctx action =
   action
@@ -106,8 +106,8 @@ tagIO ctx action =
              Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (unPrettyErrAcc pretty)
            Nothing ->
             if isAsyncException e
-              else Exc.throwIO e
-              then Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (ErrMessage (T.pack $ show e))
+              then Exc.throwIO e
+              else Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (ErrMessage (T.pack $ show e))
   where
     isAsyncException :: Exc.SomeException -> Bool
     isAsyncException e =
@@ -119,7 +119,7 @@ tagIO ctx action =
 prettyErrAcc :: Int
   -- ^ Initial indent, usually 0
   -> ErrorAcc -> T.Text
-prettyErrAcc indent (ErrMessage txt) = T.replicate indent " " <> txt
+prettyErrAcc indent (ErrMessage txt) = T.intercalate "\n" . map (T.replicate indent " " <>) . T.splitOn "\n" $ txt
 prettyErrAcc indent (ErrList errs) = T.intercalate "\n" . map (prettyErrAcc indent) . toList $ errs
 prettyErrAcc indent (ErrTag str err) = T.intercalate "\n" [prettyErrAcc indent (ErrMessage str), prettyErrAcc (indent + 4) err]
 
@@ -150,7 +150,7 @@ instance (
   mappend = (<>)
   mempty = pure mempty
 
--- | OrError's instances for 'Monad' and 'Applicative' don't align,
+-- | ErrorOr's instances for 'Monad' and 'Applicative' don't align,
 -- but the 'Monad' and 'MonadFail' instances are too useful (as in
 -- convenient) to pass on.
 -- In particular, composing two failing actions using the
@@ -207,7 +207,7 @@ instance ErrorConv Maybe ErrorOr where
   toE Nothing = fail "Nothing"
   toE (Just a) = pure a
 
--- | Convert from `Either e`, `Left` becomese error.
+-- | Convert from `Either e`, `Left` becomes an error.
 instance Show e => ErrorConv (Either e) ErrorOr where
   toE (Left err) = fail (show err)
   toE (Right a) = pure a
