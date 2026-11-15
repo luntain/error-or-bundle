@@ -125,15 +125,13 @@ takeInbox' sec t@(Inbox r) filter@(Filter text f) = do
     checkInbox observer MessagesAndObservers{..} =
       case first reverse . pick f . reverse $ messages of
         (_, Nothing) -> (MessagesAndObservers messages (observer:observers), Nothing)
-        (newMsgs, Just matched) -> (MessagesAndObservers newMsgs [], Just (observers, matched))
+        (remainingMsgs, Just matched) -> (MessagesAndObservers remainingMsgs [], Just (observers, matched))
 
     pick _ [] = ([], Nothing)
     pick f (x:xs) =
         case f x of
-          Nothing ->
-              let (rest, res) = pick f xs in
-              (x:rest, res)
           Just found -> (xs, Just found)
+          Nothing -> let (rest, res) = pick f xs in (x:rest, res)
 
 -- | It is a selector\/matcher/extractor with a name. It specifies
 -- what message to pick from the `Inbox` and how to transform it. The
