@@ -33,7 +33,7 @@ library
       src
   ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing -fno-warn-orphans
   build-depends:
-      base >=4.7 && <5
+      base >=4.10 && <5
     , exceptions
     , mtl
     , primitive
@@ -54,7 +54,7 @@ test-suite my-test-suite
   ghc-options: -Wall -Wunused-packages -threaded -rtsopts -with-rtsopts=-N -Wno-type-defaults
   build-depends:
       QuickCheck
-    , base >=4.7 && <5
+    , base >=4.10 && <5
     , error-or
     , error-or-utils
     , inbox

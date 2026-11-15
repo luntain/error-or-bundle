@@ -60,10 +60,8 @@ newtype SimulatedTimeT m a = SimulatedTimeT {unSimulatedTimeT :: ReaderT TimeEnv
       MonadFix,
       -- MonadUnliftIO, -- gives an incomprehensible typing error
       MonadResource,
-      MonadZip
-#if MIN_VERSION_GLASGOW_HASKELL(8,2,0,0)
-      , PrimMonad
-#endif
+      MonadZip,
+      PrimMonad
     )
 
 -- | Run the reader
