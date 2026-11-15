@@ -4,7 +4,7 @@
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-|
-Module      : Text.Inbox
+Module      : Test.Inbox
 
 Facilitates testing of asynchronouse code.
 
@@ -115,7 +115,7 @@ takeInbox' sec t@(Inbox r) filter@(Filter text f) = do
         Right () -> do
           -- something changed in the Inbox, let's retest the filter
           now <- liftIO getCurrentTime
-          let elapsed = diffUTCTime time0 now
+          let elapsed = diffUTCTime now time0
           takeInbox' (sec - realToFrac elapsed) t filter
         Left () -> do
           xs <- liftIO $ messages <$> readIORef r

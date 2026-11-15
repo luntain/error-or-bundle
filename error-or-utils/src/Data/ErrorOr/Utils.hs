@@ -46,7 +46,8 @@ tryRead str =
     [] -> fail ("Can't read: " ++ shorten 256 str)
     [(a, rest)]
       | all Data.Char.isSpace rest -> return a
-    parses -> fail ("Ambiguous parse: '" ++ str ++ "' " ++ shorten 256 (show parses))
+      | otherwise -> fail ("Can't read: " ++ shorten 256 str ++ ", unconsumed input: " ++ shorten 256 rest)
+    parses -> fail ("Ambiguous parse: '" ++ shorten 256 str ++ "' " ++ shorten 256 (show parses))
   where
     shorten :: Int -> [Char] -> [Char]
     shorten maxLen msg =

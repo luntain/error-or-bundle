@@ -6,8 +6,10 @@ module Control.Monad.Time
   )
 where
 
+import qualified Control.Concurrent
 import Control.Monad.Trans
-import Data.Time hiding (getCurrentTime)
+import Data.Time (UTCTime)
+import qualified Data.Time
 
 -- | A class abstracting the implementation of time in Haskell.
 -- This module provides an overlappable default instance for monads
@@ -31,5 +33,5 @@ instance {-# OVERLAPPABLE #-}
 
 instance {-# OVERLAPPABLE #-}
   (Monad m, MonadIO  m) => MonadTime m where
-  getCurrentTime = liftIO getCurrentTime
-  threadDelay a = liftIO (threadDelay a)
+  getCurrentTime = liftIO Data.Time.getCurrentTime
+  threadDelay a = liftIO (Control.Concurrent.threadDelay a)

@@ -25,3 +25,15 @@ dependencies:
 library:
   source-dirs:      src
   ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing
+
+tests:
+  error-or-tests:
+    source-dirs: tests
+    main: Tests.hs
+    dependencies:
+    - error-or
+    - tasty
+    - tasty-hunit
+    - containers
+    - text
+    ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N

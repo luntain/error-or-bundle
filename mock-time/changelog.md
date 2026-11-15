@@ -2,6 +2,8 @@
   * Remove Control.Monad.Time.DefaultInstance in favour of an overlappable instance based on MonadIO in Control.Monad.Time
   * Remove RealTimeT which can be replaced by simply using the instance from Control.Monad.Time
   * Improve documentation
+  * Fix `threadDelay'` and `advance` leaking a waker thread per call; there is now
+    at most one waker thread per `TimeEnv`
 
 ## 0.1.1 (2024-11-10)
 

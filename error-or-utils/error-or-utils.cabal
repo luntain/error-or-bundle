@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: f9a85c298c72ac456f4862d9db3fcdd71b7aeac4c39a4e269287c4658424f81e
+-- hash: fd8ef795dd4692f4befec643cbe48ed4da624cdee955bed3f839e0a21a45b4c9
 
 name:           error-or-utils
 version:        0.2.0
@@ -36,5 +36,23 @@ library
       base >=4.10 && <5
     , containers
     , error-or >=0.2.0.0
+    , text
+  default-language: Haskell2010
+
+test-suite error-or-utils-tests
+  type: exitcode-stdio-1.0
+  main-is: Tests.hs
+  other-modules:
+      Paths_error_or_utils
+  hs-source-dirs:
+      tests
+  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  build-depends:
+      base >=4.10 && <5
+    , containers
+    , error-or
+    , error-or-utils
+    , tasty
+    , tasty-hunit
     , text
   default-language: Haskell2010

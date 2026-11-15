@@ -2,6 +2,8 @@
   * Fix `tagIO`: it now tags synchronous exceptions and lets asynchronous ones
     pass unchanged. In 0.3.0 it did the opposite, despite what the changelog said.
   * `prettyErrAcc` indents every line of a multi-line message, not only the first
+  * `tagIO` lets `ExitCode` pass unchanged, so `exitWith` inside it still exits
+    with the intended code instead of becoming an error
 ## 0.3.0 (2022-06-16)
   * tagIO now wraps any non async exception, used to wrap only `IOExceptions` and
     user errors (from `error` function)

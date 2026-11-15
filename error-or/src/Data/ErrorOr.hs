@@ -46,8 +46,13 @@ import Control.Monad.Fail (MonadFail(..))
 #endif
 import Control.Monad.Except (MonadError, throwError, catchError) -- it exports GHC.Base.fail (?!)
 import Data.String
+import System.Exit (ExitCode)
 
--- | Use 'Applicative'\'s 'sequenceA' and 'sequenceA_' to compose 'ErrorOr's as opposed to 'Monad' derived functions like 'sequence'.
+-- | Compose 'ErrorOr's with 'Applicative' functions ('Data.Foldable.traverse_',
+-- 'Data.Foldable.for_', 'Data.Foldable.sequenceA_', '<*>', '*>') to collect all
+-- the errors. The 'Monad'-based functions ('mapM_', 'Data.Foldable.forM_',
+-- 'sequence_', '>>=', '>>') stop at the first
+-- error. See the note on the 'Monad' instance.
 newtype ErrorOr a = ErrorOr {errorOrToEither :: Either ErrorAcc a}
   deriving (Show, Read, Eq, Ord, Functor, Foldable, Traversable)
 
@@ -90,11 +95,62 @@ instance Exc.Exception PrettyErrAcc where
 
 -- | Tag an exception with an annotation.
 --
--- It lets async exceptions pass unchanged and has special logic for
--- `PrettyErrAcc` for better composition. For `SomeException`, it
+-- It lets async exceptions and 'ExitCode' (thrown by 'System.Exit.exitWith'
+-- and friends) pass unchanged, and has special logic for
+-- `PrettyErrAcc` for better composition. For other exceptions, it
 -- converts the error message into Text via String and turns it into
 -- `PrettyErrAcc` tagged with the provided annotation. For `PrettyErrAcc`
 -- it is straightforward tagging.
+--
+-- __Use it at boundaries__, where an exception is about to be reported
+-- (around @main@, a request handler, a job), not deep inside code whose
+-- exceptions someone handles by type. Wrapping erases the type of the
+-- original exception, so handlers further up that match a specific type
+-- no longer fire. For example, after
+--
+-- @
+-- tagIO \"loading config\" (readFile path) \`catch\` \\(e :: IOException) -> ...
+-- @
+--
+-- the handler never runs, because what escapes is a 'PrettyErrAcc'. The
+-- same goes for retry logic keyed on a library's exception type, and for
+-- frameworks that use exceptions for control flow (redirects, early
+-- responses).
+--
+-- Whether an exception is asynchronous is decided by its type (whether it
+-- is wrapped in 'Exc.SomeAsyncException'), not by how it was delivered:
+--
+--   * 'Exc.ThreadKilled' (from 'Control.Concurrent.killThread'), the
+--     timeout of "System.Timeout", and the @async@ package's
+--     @AsyncCancelled@ and @ExceptionInLinkedThread@ are asynchronous and
+--     pass through untagged. In particular, a failure of a child that
+--     reaches this thread via the @async@ package's @link@ is not tagged,
+--     while the same failure observed via @wait@ is.
+--
+--   * An exception of an ordinary type sent from another thread with
+--     'Control.Concurrent.throwTo' is treated as synchronous and gets
+--     wrapped, so a thread that interrupts this one that way cannot catch
+--     its own exception type afterwards.
+--
+--   * Exceptions thrown by the runtime on deadlock
+--     ('Exc.BlockedIndefinitelyOnMVar', 'Exc.BlockedIndefinitelyOnSTM',
+--     'Exc.Deadlock') or on @\<\<loop\>\>@ ('Exc.NonTermination') are
+--     typed as synchronous and get wrapped.
+--
+-- Only exceptions raised in the calling thread while the action runs are
+-- seen. Failures of threads forked inside the action are not, unless
+-- something brings them back (@wait@, @link@, @concurrently@, ...).
+--
+-- __Alternative on GHC 9.10 and later:__ 'Control.Exception.annotateIO'
+-- attaches an annotation to the exception's context without changing its
+-- type, so handlers that match by type keep working. The annotations are
+-- printed for uncaught exceptions and by 'Exc.displayException' on
+-- 'Exc.SomeException' (as checked on GHC 9.10.3), but not by 'show'. They
+-- are a flat list rather than a tree like 'ErrorAcc', and they are lost
+-- when an exception is caught at its specific type and rethrown with
+-- 'Exc.throwIO'. That makes them the better choice for annotating deep
+-- inside code; 'tagIO' remains useful at reporting boundaries and on
+-- older compilers.
 --
 -- @since 0.1.1.0
 tagIO :: T.Text -> IO a -> IO a
@@ -105,7 +161,7 @@ tagIO ctx action =
            Just (pretty :: PrettyErrAcc) ->
              Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (unPrettyErrAcc pretty)
            Nothing ->
-            if isAsyncException e
+            if isAsyncException e || isExitCode e
               then Exc.throwIO e
               else Exc.throwIO $ PrettyErrAcc $ ErrTag ctx (ErrMessage (T.pack $ show e))
   where
@@ -113,6 +169,11 @@ tagIO ctx action =
     isAsyncException e =
       case Exc.fromException e of
           Just (Exc.SomeAsyncException _) -> True
+          Nothing -> False
+    isExitCode :: Exc.SomeException -> Bool
+    isExitCode e =
+      case Exc.fromException e of
+          Just (_ :: ExitCode) -> True
           Nothing -> False
 
 -- | Pretty print the error.

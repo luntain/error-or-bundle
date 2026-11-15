@@ -1,6 +1,7 @@
 {-# LANGUAGE TypeApplications #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE UnboxedTuples #-}
+{-# LANGUAGE NumericUnderscores #-}
 
 -- | Contains a simulated-time implementaion. It can be used directly,
 -- to implement the simulated versions of getCurrentTime and
@@ -22,7 +23,6 @@ import Control.Concurrent.STM
 import Control.Monad (unless, when)
 import Data.Foldable (forM_)
 import Data.Function (on)
-import Data.Functor (void)
 import Data.List (insertBy, partition)
 import Data.Maybe (listToMaybe)
 import Data.Time hiding (getCurrentTime)
@@ -34,19 +34,23 @@ import Data.Bifunctor (Bifunctor(first))
 data TimeEnv
   = TimeEnv
       { offset :: TVar NominalDiffTime,
-        events :: TVar [(UTCTime, MVar ())]
+        -- | sorted by wake-up time, which is in system time
+        events :: TVar [(UTCTime, MVar ())],
+        -- | The thread that will wake up the earliest event and when (in
+        -- system time). There is at most one such thread at a time.
+        waker :: MVar (Maybe (UTCTime, ThreadId))
       }
 
 -- | Create the simulated time env from the given time start point. For example
 --
 -- @
--- timeEnv <- create (fromGregorian 2000 1 1) 0
+-- timeEnv <- create (UTCTime (fromGregorian 2000 1 1) 0)
 -- getSimulatedTime timeEnv
 -- @
 create :: UTCTime -> IO TimeEnv
 create epoch = do
   now <- Data.Time.getCurrentTime
-  TimeEnv <$> newTVarIO (diffUTCTime epoch now) <*> newTVarIO []
+  TimeEnv <$> newTVarIO (diffUTCTime epoch now) <*> newTVarIO [] <*> newMVar Nothing
 
 -- | The current simulated time
 getSimulatedTime :: TimeEnv -> IO UTCTime
@@ -70,7 +74,7 @@ advance t diff = do
     modifyTVar (events t) (map (first (addUTCTime (- diff))))
     extractDueEvents t now
   forM_ due (flip putMVar ())
-  scheduleNextWakeUp t now
+  scheduleNextWakeUp t
 
 -- the 'now' is the system time now, as opposed to simulated now
 extractDueEvents :: TimeEnv -> UTCTime -> STM [MVar ()]
@@ -79,14 +83,37 @@ extractDueEvents t now = do
   writeTVar (events t) inTheFuture
   return (map snd due)
 
-scheduleNextWakeUp :: TimeEnv -> UTCTime -> IO ()
-scheduleNextWakeUp t now = do
-  nextEvent <- listToMaybe . map fst <$> readTVarIO (events t)
-  case nextEvent of
-    Nothing -> return ()
-    Just tm -> do
-      let us = ceiling (diffUTCTime tm now * 1000000)
-      void (forkIO (Control.Concurrent.threadDelay us >> triggerEvents t))
+-- | Make sure the registered waker thread fires no later than the
+-- earliest event. A waker scheduled for a later time is killed and
+-- replaced; one that is no longer needed is killed.
+--
+-- A waker unregisters itself (under the 'waker' lock) before it does
+-- any work, so a registered waker is always still sleeping and is safe
+-- to kill.
+scheduleNextWakeUp :: TimeEnv -> IO ()
+scheduleNextWakeUp t =
+  modifyMVar_ (waker t) $ \current -> do
+    nextEvent <- listToMaybe . map fst <$> readTVarIO (events t)
+    case (nextEvent, current) of
+      (Just tm, Just (scheduled, _)) | scheduled <= tm -> return current
+      (Just tm, _) -> do
+        forM_ current (killThread . snd)
+        tid <- forkIO (wakeUpAt tm)
+        return (Just (tm, tid))
+      (Nothing, _) -> do
+        forM_ current (killThread . snd)
+        return Nothing
+  where
+    wakeUpAt tm = do
+      now <- Data.Time.getCurrentTime
+      Control.Concurrent.threadDelay (ceiling (diffUTCTime tm now * 1_000_000))
+      me <- myThreadId
+      stillRegistered <- modifyMVar (waker t) $ \current ->
+        return $
+          if fmap snd current == Just me
+            then (Nothing, True)
+            else (current, False)
+      when stillRegistered (triggerEvents t)
 
 -- | Simulated alternative to `Control.Concurrent.threadDelay`, sleep
 -- for the given number of microseconds. Threads wakes up according to
@@ -95,10 +122,7 @@ threadDelay' :: TimeEnv -> Int -> IO ()
 threadDelay' t us = do
   mvar <- newEmptyMVar
   now <- Data.Time.getCurrentTime
-  shouldScheduleWakeUp <- atomically $ do
-    nextWakeUp <- listToMaybe . map fst <$> readTVar (events t)
-    let eventTime = addUTCTime (fromIntegral us / (1000 * 1000)) now
-    modifyTVar (events t) (insertBy (compare `on` fst) (eventTime, mvar))
-    return (maybe True (eventTime <) nextWakeUp)
-  when shouldScheduleWakeUp (scheduleNextWakeUp t now)
+  let eventTime = addUTCTime (fromIntegral us / (1000 * 1000)) now
+  atomically $ modifyTVar (events t) (insertBy (compare `on` fst) (eventTime, mvar))
+  scheduleNextWakeUp t
   readMVar mvar

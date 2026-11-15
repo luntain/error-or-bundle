@@ -23,3 +23,14 @@ dependencies:
 library:
   source-dirs:      src
   ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing
+
+tests:
+  inbox-tests:
+    source-dirs: tests
+    main: Tests.hs
+    dependencies:
+    - inbox
+    - tasty
+    - tasty-hunit
+    - time
+    ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
