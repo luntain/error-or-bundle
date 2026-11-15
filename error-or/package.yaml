@@ -24,4 +24,4 @@ dependencies:
 
 library:
   source-dirs:      src
-  ghc-options: -Wall -fno-warn-name-shadowing
+  ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing
