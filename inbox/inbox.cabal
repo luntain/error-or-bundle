@@ -4,7 +4,7 @@ cabal-version: 1.12
 --
 -- see: https://github.com/sol/hpack
 --
--- hash: 367006692cb6c6a82e6d193084811f7aa5e52ac7e2dba2e0b2d4e8e11118f343
+-- hash: b2b663cf76042c0cd3d72598ce44c50d7f78e6f44734128a5d0a996ed4781dfe
 
 name:           inbox
 version:        0.2.0
@@ -32,11 +32,10 @@ library
       src
   ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing
   build-depends:
-      async
-    , base >=4.10 && <5
+      base >=4.10 && <5
     , error-or >=0.2.0.0
+    , stm
     , text
-    , time
   default-language: Haskell2010
 
 test-suite inbox-tests
@@ -48,10 +47,10 @@ test-suite inbox-tests
       tests
   ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      async
-    , base >=4.10 && <5
+      base >=4.10 && <5
     , error-or >=0.2.0.0
     , inbox
+    , stm
     , tasty
     , tasty-hunit
     , text

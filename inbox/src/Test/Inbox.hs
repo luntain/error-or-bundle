@@ -1,6 +1,4 @@
 {-# LANGUAGE CPP #-}
-{-# LANGUAGE ScopedTypeVariables #-}
-{-# LANGUAGE RecordWildCards #-}
 {-# LANGUAGE TupleSections #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-|
@@ -34,19 +32,16 @@ module Test.Inbox (
  where
 
 import qualified Control.Category as Cat
-import Control.Arrow (Arrow(..), first)
-import Data.IORef (newIORef, readIORef, atomicModifyIORef, IORef)
-import Control.Monad.IO.Class (liftIO, MonadIO)
-import qualified Data.Text as T
-import Data.ErrorOr
-import Control.Concurrent
-import Control.Concurrent.Async
-import Data.Maybe (isJust)
+import Control.Arrow (Arrow(..))
+import Control.Concurrent (forkIO, killThread, threadDelay)
+import Control.Concurrent.STM
+import Control.Exception (ErrorCall(..), bracket, throwIO)
 import Control.Monad (unless)
+import Control.Monad.IO.Class (liftIO, MonadIO)
+import Data.ErrorOr
 import Data.Foldable (sequenceA_)
-import Control.Monad (forM_)
-import Control.Exception
-import Data.Time
+import Data.Maybe (isJust)
+import qualified Data.Text as T
 
 #if __GLASGOW_HASKELL__ < 808
 import Prelude hiding (fail) -- out with the old, Monad.fail
@@ -56,30 +51,16 @@ import Data.Semigroup
 
 
 -- | An entity holding a number of messages of type `a`.
-data Inbox a =
-  Inbox (IORef (MessagesAndObservers a))
-
-data MessagesAndObservers a = MessagesAndObservers {
-  messages :: ![a]
-  , observers :: !Observers
-  }
-
-type Observer = MVar ()
-type Observers = [Observer]
+newtype Inbox a =
+  Inbox (TVar [a]) -- the newest message is at the head
 
 -- | Create an empty Inbox.
 newInbox :: IO (Inbox a)
-newInbox = Inbox `fmap` newIORef (MessagesAndObservers [] [])
+newInbox = Inbox <$> newTVarIO []
 
 -- | Add a message to the Inbox.
-putInbox :: forall m a . MonadIO m => Inbox a -> a -> m ()
-putInbox (Inbox r) newmsg = do
-  liftIO $ mask_ $ do
-    observers <- atomicModifyIORef r f
-    mapM_ (flip putMVar ()) observers
-  where
-    f :: MessagesAndObservers a -> (MessagesAndObservers a, [MVar ()])
-    f MessagesAndObservers {..} = (MessagesAndObservers (newmsg:messages) [], observers)
+putInbox :: MonadIO m => Inbox a -> a -> m ()
+putInbox (Inbox r) newmsg = liftIO . atomically $ modifyTVar' r (newmsg :)
 
 -- | 'takeInbox'' with a timeout of 3s
 takeInbox :: (MonadIO m, Show a) => Inbox a -> Filter a b -> m b
@@ -88,7 +69,6 @@ takeInbox = takeInbox' 3
 -- | Take a single message out of the inbox, waiting for it up to the specified timeout in seconds.
 --   It respects the order the messages were inserted into the inbox.
 takeInbox' ::
-  forall m a b.
   (MonadIO m, Show a) =>
 #if __GLASGOW_HASKELL__ >= 808
   -- | timeout in seconds
@@ -97,48 +77,51 @@ takeInbox' ::
   Inbox a ->
   Filter a b ->
   m b
-takeInbox' sec t@(Inbox r) filter@(Filter text f) = do
-  observer <- liftIO $ newEmptyMVar
-  match <- liftIO $ mask_ $ do -- mask, so we are not interrupted before notifying the observers
-    match <- atomicModifyIORef r (checkInbox observer)
-    -- I got a bit ahead of myself. In the current design there are no
-    -- observers waiting for decrease of messages in the Inbox, but I
-    -- am considering making the `assertEmpty` observe the Inbox
-    forM_ (fst <$> match) $ mapM_ (flip putMVar ()) . reverse
-    return (snd <$> match)
-  case match of
-    Just msg -> return msg
-    Nothing -> do
-      time0 <- liftIO getCurrentTime
-      res <- liftIO $ race (threadDelay (round $ sec * 10^(6::Int))) (readMVar observer)
-      case res of
-        Right () -> do
-          -- something changed in the Inbox, let's retest the filter
-          now <- liftIO getCurrentTime
-          let elapsed = diffUTCTime now time0
-          takeInbox' (sec - realToFrac elapsed) t filter
-        Left () -> do
-          xs <- liftIO $ messages <$> readIORef r
-          error (T.unpack $ "Timed out waiting for `" <> text <> "`. Contents: " <> (T.pack $ show xs))
- where
-    checkInbox :: Observer -> MessagesAndObservers a -> (MessagesAndObservers a, Maybe (Observers, b))
-    checkInbox observer MessagesAndObservers{..} =
-      case first reverse . pick f . reverse $ messages of
-        (_, Nothing) -> (MessagesAndObservers messages (observer:observers), Nothing)
-        (remainingMsgs, Just matched) -> (MessagesAndObservers remainingMsgs [], Just (observers, matched))
+takeInbox' sec (Inbox r) (Filter text f) = liftIO $ do
+  res <- withTimer (round $ sec * 10^(6::Int)) $ \timedOut -> atomically $ do
+    msgs <- readTVar r
+    case pickOldest f msgs of
+      Just (remainingMsgs, matched) -> Right matched <$ writeTVar r remainingMsgs
+      Nothing -> do
+        -- 'retry' blocks this thread until one of the TVars read above
+        -- changes, that is until 'putInbox' adds a message or the timer
+        -- sets 'timedOut', and then runs the transaction again from the top
+        expired <- readTVar timedOut
+        if expired then return (Left msgs) else retry
+  case res of
+    Right matched -> return matched
+    Left msgs ->
+      throwIO . ErrorCall . T.unpack $
+        "Timed out waiting for `" <> text <> "`. Contents: " <> T.pack (show msgs)
 
-    pick _ [] = ([], Nothing)
-    pick f (x:xs) =
-        case f x of
-          Just found -> (xs, Just found)
-          Nothing -> let (rest, res) = pick f xs in (x:rest, res)
+-- | Remove the oldest (the last in the list) message accepted by the function.
+pickOldest :: (a -> Maybe b) -> [a] -> Maybe ([a], b)
+pickOldest _ [] = Nothing
+pickOldest f (x:xs) =
+  case pickOldest f xs of
+    Just (rest, found) -> Just (x:rest, found)
+    Nothing -> (xs,) <$> f x
+
+-- | Run the action with a 'TVar' that turns 'True' after the given
+-- number of microseconds. It is like 'registerDelay', except it does
+-- not require the threaded runtime.
+withTimer :: Int -> (TVar Bool -> IO a) -> IO a
+withTimer us action = do
+  expired <- newTVarIO False
+  bracket
+    (forkIO $ threadDelay us >> atomically (writeTVar expired True))
+    killThread
+    (const $ action expired)
 
 -- | It is a selector\/matcher/extractor with a name. It specifies
 -- what message to pick from the `Inbox` and how to transform it. The
 -- name provides for a better error messages. See `predicate` for a
 -- 'Filter' 'a' 'a' that selects an element and does not apply any
--- transformation.
+-- transformation. Use 'fmap' to transform the result of a filter.
 data Filter a b = Filter T.Text (a -> Maybe b)
+
+instance Functor (Filter a) where
+  fmap g (Filter name f) = Filter name (fmap g . f)
 
 instance Cat.Category Filter where
   id = Filter "id" Just
@@ -161,7 +144,7 @@ predicate name p = Filter name (\x -> if p x then Just x else Nothing)
 -- | Validate that the inbox has no messages inside at the moment.
 expectEmpty :: Show a => Inbox a -> IO (ErrorOr ())
 expectEmpty (Inbox r) = do
-  xs <- messages <$> readIORef r
+  xs <- readTVarIO r
   case xs of
     [] -> pure (pure ())
     _ -> return . tag "Unconsumed messages" . sequenceA_ . map (fail . show) $ xs
@@ -169,7 +152,7 @@ expectEmpty (Inbox r) = do
 -- | Validate that the filter does not match anything in the Inbox.
 expectEmpty' :: (Show a, MonadIO m) => Inbox a -> Filter a b -> m ()
 expectEmpty' (Inbox r) (Filter name p) = do
-  elems <- liftIO (filter (isJust.p) . messages <$> readIORef r)
+  elems <- liftIO (filter (isJust.p) <$> readTVarIO r)
   unless (null elems) $ do
     liftIO
       . toE

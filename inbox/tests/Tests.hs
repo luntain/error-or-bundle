@@ -1,3 +1,4 @@
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE ScopedTypeVariables #-}
 import Control.Concurrent (forkIO, killThread, threadDelay)
 import Control.Exception
@@ -17,6 +18,18 @@ main =
           _ <- forkIO (threadDelay 10000 >> putInbox box (1 :: Int) >> putInbox box 2)
           takeInbox box (equalTo 2)
           takeInbox box (equalTo 1),
+        testCase "takeInbox takes the oldest matching message first" $ do
+          box <- newInbox
+          forM_ [1 :: Int .. 4] (putInbox box)
+          let isEven = predicate "even" even
+              anything = predicate "anything" (const True)
+          taken <- mapM (takeInbox box) [isEven, isEven, anything, anything]
+          taken @?= [2, 4, 1, 3],
+        testCase "fmap transforms the message a filter picks" $ do
+          box <- newInbox
+          forM_ [1 :: Int .. 2] (putInbox box)
+          taken <- takeInbox box (show <$> predicate "even" even)
+          taken @?= "2",
         testCase "non-matching messages do not extend the timeout" $ do
           box <- newInbox
           -- a non-matching message every 0.1s for 3s
