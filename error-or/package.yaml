@@ -7,7 +7,6 @@ homepage:            https://github.com/luntain/error-or-bundle/blob/master/erro
 license:             BSD3
 author:              Kamil Dworakowski
 maintainer:          kamil@dworakowski.name
-copyright:           2020 Kamil Dworakowski
 category:            data,library
 
 extra-source-files:
@@ -15,16 +14,16 @@ extra-source-files:
 - changelog.md
 
 tested-with: GHC ==8.6.5 || ==8.8.3 || ==8.10.2 || ==9.0.1 || ==9.2.1 || ==9.4.8 || ==9.6.6 || ==9.8.4 || ==9.10.3 || ==9.12.2
-
+ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing
 dependencies:
   - base >= 4.10 && < 5 # GHC >= 8.2
   - text
   - containers
-  - mtl
 
 library:
   source-dirs:      src
-  ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing
+  dependencies:
+  - mtl
 
 tests:
   error-or-tests:
@@ -34,6 +33,4 @@ tests:
     - error-or
     - tasty
     - tasty-hunit
-    - containers
-    - text
     ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N

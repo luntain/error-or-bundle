@@ -18,7 +18,7 @@ dependencies:
   - base >= 4.10 && < 5
   - time
 
-ghc-options: -Wall -Wunused-packages
+ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing -fno-warn-orphans
 
 library:
   source-dirs: src
@@ -30,7 +30,6 @@ library:
   - resourcet
   - primitive
   - unliftio-core
-  ghc-options: -fno-warn-name-shadowing -fno-warn-orphans
 
 tests:
   my-test-suite:

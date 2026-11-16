@@ -1,10 +1,8 @@
 cabal-version: 1.12
 
--- This file has been generated from package.yaml by hpack version 0.38.3.
+-- This file has been generated from package.yaml by hpack version 0.39.6.
 --
 -- see: https://github.com/sol/hpack
---
--- hash: b7682f0b36a09e1c73ad261fd63874b28244cb30bc041f0cf919631ab9091261
 
 name:           error-or
 version:        0.3.1
@@ -14,12 +12,11 @@ category:       data,library
 homepage:       https://github.com/luntain/error-or-bundle/blob/master/error-or#readme
 author:         Kamil Dworakowski
 maintainer:     kamil@dworakowski.name
-copyright:      2020 Kamil Dworakowski
 license:        BSD3
 license-file:   LICENSE
+build-type:     Simple
 tested-with:
     GHC ==8.6.5 || ==8.8.3 || ==8.10.2 || ==9.0.1 || ==9.2.1 || ==9.4.8 || ==9.6.6 || ==9.8.4 || ==9.10.3 || ==9.12.2
-build-type:     Simple
 extra-source-files:
     README.md
     changelog.md
@@ -46,12 +43,11 @@ test-suite error-or-tests
       Paths_error_or
   hs-source-dirs:
       tests
-  ghc-options: -Wall -threaded -rtsopts -with-rtsopts=-N
+  ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing -Wall -threaded -rtsopts -with-rtsopts=-N
   build-depends:
       base >=4.10 && <5
     , containers
     , error-or
-    , mtl
     , tasty
     , tasty-hunit
     , text

@@ -12,16 +12,16 @@ extra-source-files:
 - README.md
 
 tested-with: GHC ==8.6.5 || ==8.8.3 || ==8.10.2 || ==9.0.1 || ==9.2.1 || ==9.4.8 || ==9.6.6 || ==9.8.4 || ==9.10.3 || ==9.12.2
-
+ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing
 dependencies:
   - base >= 4.10 && < 5
   - error-or >= 0.2.0.0
   - text
-  - containers
 
 library:
   source-dirs:      src
-  ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing
+  dependencies:
+  - containers
 
 tests:
   error-or-utils-tests:

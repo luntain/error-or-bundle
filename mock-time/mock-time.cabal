@@ -51,7 +51,7 @@ test-suite my-test-suite
       Paths_mock_time
   hs-source-dirs:
       tests
-  ghc-options: -Wall -Wunused-packages -threaded -rtsopts -with-rtsopts=-N -Wno-type-defaults
+  ghc-options: -Wall -Wunused-packages -fno-warn-name-shadowing -fno-warn-orphans -threaded -rtsopts -with-rtsopts=-N -Wno-type-defaults
   build-depends:
       QuickCheck
     , base >=4.10 && <5
